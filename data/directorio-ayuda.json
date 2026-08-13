@@ -1,0 +1,86 @@
+{
+  "advertencia_fraude": {
+    "titulo": "La Alcaldía de Buenaventura aclaró públicamente:",
+    "puntos": [
+      "NO ha habilitado cuentas bancarias propias para recibir donaciones",
+      "NO se debe entregar dinero en efectivo a ningún funcionario",
+      "SÍ se puede donar en el centro de acopio oficial (Oficina de Atención al Ciudadano)"
+    ],
+    "fuente_tipo": "oficial"
+  },
+  "niveles_confianza": {
+    "oficial": "Entidad de gobierno o institución pública reconocida",
+    "institucional": "ONG o fundación con trayectoria y registro verificable, previa a la emergencia",
+    "colectivo": "Organización o asociación identificable, con nombre y responsables, sin trayectoria institucional larga",
+    "individual": "Persona particular — sin verificación institucional, usar criterio propio antes de donar"
+  },
+  "iniciativas": [
+    {
+      "nombre": "Oficina de Atención al Ciudadano — Alcaldía Distrital",
+      "nivel_confianza": "oficial",
+      "ubicacion": "Frente a la Alcaldía, Buenaventura",
+      "horario": "Lunes a viernes, 8:00 AM – 5:00 PM",
+      "recibe": ["Alimentos no perecederos", "Insumos médicos", "Kits de alojamiento", "Elementos de aseo", "Kits de cocina"],
+      "no_recibe": ["Dinero en efectivo", "Transferencias", "Medicamentos"],
+      "fuente": "Comunicado oficial Alcaldía Distrital de Buenaventura"
+    },
+    {
+      "nombre": "Cruz Roja Colombiana",
+      "nivel_confianza": "institucional",
+      "como_donar": "cruzrojacolombiana.org → \"¡Dona ya!\"",
+      "cuenta": "Davivienda #0560455069996490",
+      "nit": "899999025-3",
+      "fuente": "Sitio oficial Cruz Roja Colombiana"
+    },
+    {
+      "nombre": "Banco de Alimentos (ABACO)",
+      "nivel_confianza": "institucional",
+      "llave_bre_b": "0091677852",
+      "campana": "#JuntosContraElHambre",
+      "web": "bancodealimentos.org.co",
+      "whatsapp": "3132457978",
+      "fuente": "Sitio oficial Banco de Alimentos"
+    },
+    {
+      "nombre": "Fundación Mati",
+      "nivel_confianza": "institucional",
+      "descripcion": "Ya en Buenaventura ayudando a familias afectadas — recuperación de viviendas y dotación",
+      "contacto_whatsapp": "3174302187",
+      "nequi": "3174302187",
+      "fuente": "Estado de WhatsApp de la organización, 2026-08-12",
+      "nota_verificacion": "Pendiente de confirmación directa por el equipo antes de darle el sello más alto de confianza."
+    },
+    {
+      "nombre": "Corporación Vida Consciente Colombia",
+      "nivel_confianza": "colectivo",
+      "prioridad_inmediata": ["Agua potable", "Alimentos no perecederos de preparación rápida", "Fórmulas lácteas e infantiles", "Kits de primeros auxilios y medicamentos esenciales"],
+      "cuenta_bancolombia_ahorros": "84300005297",
+      "llave_bancolombia_negocios": "0090005416",
+      "puntos_entrega": ["Cr 47 2 27, Barrio Bellavista", "Calle 4 #14-81, Calle El Trapiche"],
+      "fuente": "Estado de WhatsApp compartido, 2026-08-12",
+      "nota_verificacion": "Colectivo identificable con responsables nombrados — no institución con trayectoria previa confirmada."
+    },
+    {
+      "nombre": "Cadhubev Benkos Vive",
+      "nivel_confianza": "colectivo",
+      "descripcion": "Colecta solidaria Cali - Chocó - Buenaventura",
+      "llave_daviplata": "@9010994132",
+      "puntos_entrega": ["Villa del Prado, Calle 59#4c-28", "Ciudad Córdoba, Cra 48b#48-51"],
+      "fuente": "Estado de WhatsApp compartido, 2026-08-13",
+      "nota_verificacion": "Colectivo identificable — pendiente confirmación directa."
+    },
+    {
+      "nombre": "Manos a la Obra — Asociación Social y Cultural",
+      "nivel_confianza": "colectivo",
+      "descripcion": "Recolecta materiales y herramientas de construcción para reconstrucción de vivienda",
+      "recibe": ["Cemento", "Zinc", "Madera", "Herramientas"],
+      "contacto_whatsapp": "3170841838",
+      "fuente": "Estado de WhatsApp compartido, 2026-08-12",
+      "nota_verificacion": "Colectivo identificable — pendiente confirmación directa."
+    }
+  ],
+  "_meta": {
+    "principio": "Nunca se muestran todas las iniciativas con el mismo peso visual — el nivel de confianza siempre es visible antes que el número de cuenta.",
+    "ultima_revision_por_equipo": null
+  }
+}

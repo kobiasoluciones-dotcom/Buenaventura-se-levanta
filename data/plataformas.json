@@ -1,0 +1,46 @@
+{
+  "ciudadanas": [
+    {
+      "nombre": "ConectaColombia 7.4",
+      "url": "https://www.conectacolombia.org/",
+      "descripcion": "Mapa en tiempo real de iniciativas de ayuda ciudadana, por categoría y urgencia."
+    },
+    {
+      "nombre": "Gestión de Ayudas Colombia",
+      "url": "https://www.gestiondeayudascolombia.com/",
+      "descripcion": "Mapa de necesidades vs. donaciones vs. entregas — evita duplicación de ayudas."
+    },
+    {
+      "nombre": "Colombia te busca",
+      "url": "https://colombiatebusca.com/",
+      "descripcion": "Registro y búsqueda de personas desaparecidas o encontradas tras el sismo."
+    }
+  ],
+  "oficiales": [
+    {
+      "nombre": "Servicio Geológico Colombiano (SGC)",
+      "url": "https://sismosentido.sgc.gov.co/",
+      "descripcion": "Datos sísmicos oficiales en tiempo real."
+    },
+    {
+      "nombre": "UNGRD — Sistema Nacional de Información para la Gestión del Riesgo",
+      "url": "https://www.gestiondelriesgo.gov.co/snigrd/",
+      "descripcion": "Alertas y sistema nacional de gestión del riesgo de desastres."
+    },
+    {
+      "nombre": "Alcaldía Distrital de Buenaventura",
+      "url": "https://www.buenaventura.gov.co/categorias/comunicados",
+      "descripcion": "Comunicados oficiales del Distrito."
+    },
+    {
+      "nombre": "Gobernación del Valle del Cauca",
+      "url": "https://www.valledelcauca.gov.co/",
+      "descripcion": "Información oficial departamental."
+    },
+    {
+      "nombre": "Datos Abiertos Colombia",
+      "url": "https://www.datos.gov.co/",
+      "descripcion": "Bases de datos abiertas de emergencias UNGRD, para quien busca profundidad estadística."
+    }
+  ]
+}

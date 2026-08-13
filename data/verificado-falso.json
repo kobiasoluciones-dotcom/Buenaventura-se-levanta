@@ -1,0 +1,51 @@
+{
+  "aclaraciones_oficiales": [
+    {
+      "afirmacion": "La Alcaldía de Buenaventura habilitó cuentas bancarias para donar",
+      "estado": "falso",
+      "explicacion": "La Alcaldía aclaró que no ha habilitado ninguna cuenta bancaria propia ni autoriza recibir dinero en efectivo de funcionarios. El único canal oficial de donación en especie es la Oficina de Atención al Ciudadano.",
+      "fuente": "Comunicado oficial Alcaldía Distrital de Buenaventura"
+    },
+    {
+      "afirmacion": "El volcán Puracé cambió a alerta roja tras el sismo",
+      "estado": "falso",
+      "explicacion": "El volcán continúa en alerta naranja, según el Servicio Geológico Colombiano.",
+      "fuente": "Servicio Geológico Colombiano (SGC)"
+    },
+    {
+      "afirmacion": "El sismo fue provocado por HAARP",
+      "estado": "falso",
+      "explicacion": "No existe evidencia científica ni mecanismo físico conocido que permita a HAARP u otra tecnología provocar terremotos.",
+      "fuente": "Consenso científico citado por medios de verificación (Chequeado, Newtral)"
+    },
+    {
+      "afirmacion": "Hay predicciones confiables de cuándo ocurrirá la próxima réplica fuerte",
+      "estado": "falso",
+      "explicacion": "Los sismos no se pueden predecir con precisión de fecha u hora — ninguna entidad científica seria hace ese tipo de predicción.",
+      "fuente": "Servicio Geológico Colombiano (SGC)"
+    },
+    {
+      "afirmacion": "Un video viral de una escuela colapsando durante el sismo es de Buenaventura",
+      "estado": "falso",
+      "explicacion": "El video corresponde a un sismo en Filipinas, de junio de 2026 — no es de Colombia.",
+      "fuente": "Verificado por Newtral / Chequeado"
+    },
+    {
+      "afirmacion": "Un video de obreros huyendo de una construcción durante el temblor es de Buenaventura",
+      "estado": "falso",
+      "explicacion": "El video fue grabado en Quetzaltenango, Guatemala.",
+      "fuente": "Verificado por Newtral / Chequeado"
+    },
+    {
+      "afirmacion": "Circula una imagen del Monumento a la Resistencia en Cali completamente destruido",
+      "estado": "falso",
+      "explicacion": "La imagen fue generada con inteligencia artificial, no es una fotografía real.",
+      "fuente": "Verificado por Newtral"
+    }
+  ],
+  "_meta": {
+    "principio": "Todo lo publicado aquí cita su fuente de verificación. Cuando un rumor específico de Buenaventura llegue sin fuente confirmable, se marca como 'sin confirmar' — nunca se afirma sin respaldo.",
+    "recordatorio_equipo": "Antes de compartir cualquier imagen o video como evidencia, verificar origen geográfico y temporal — patrón repetido en esta emergencia: contenido reciclado de otros países o eventos.",
+    "ultima_revision_por_equipo": null
+  }
+}

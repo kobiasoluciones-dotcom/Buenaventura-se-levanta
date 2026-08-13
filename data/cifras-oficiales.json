@@ -1,0 +1,63 @@
+{
+  "buenaventura": {
+    "fecha_corte": "2026-08-12",
+    "fuente": "Alcaldía Distrital de Buenaventura — Informe de situación y acciones de respuesta tras el sismo",
+    "fuente_tipo": "oficial",
+    "afectados": 3956,
+    "viviendas_destruidas": { "total": 540, "urbano": 413, "rural": 127 },
+    "viviendas_averiadas": { "total": 2833, "urbano": 2180, "rural": 653 },
+    "fallecidos": 13,
+    "lesionados": 310,
+    "alojamientos_temporales_habilitados": 52,
+    "contacto_recepcion_ayudas_humanitarias": "+57 315 2517606"
+  },
+  "contexto_nacional": {
+    "fecha_corte": "2026-08-13",
+    "fuente": "UNGRD (Unidad Nacional para la Gestión del Riesgo de Desastres)",
+    "fuente_tipo": "oficial",
+    "familias_afectadas": 407530,
+    "personas_damnificadas": 97515,
+    "fallecidos": 273,
+    "nota": "Cifra nacional, no específica de Buenaventura — se muestra para contexto, no se mezcla con las cifras locales."
+  },
+  "sismo_principal": {
+    "fecha": "2026-08-10",
+    "hora_local": "07:34",
+    "magnitud": 7.4,
+    "profundidad_km": 96,
+    "epicentro": "Cercano a San José del Palmar, Chocó",
+    "fuente": "Servicio Geológico Colombiano (SGC)",
+    "fuente_tipo": "oficial"
+  },
+  "replicas_relevantes": [
+    {
+      "fecha": "2026-08-13",
+      "hora_local": "09:42",
+      "magnitud": 4.2,
+      "ubicacion": "San José del Palmar, Chocó",
+      "profundidad_km": 95,
+      "fuente": "Servicio Geológico Colombiano (SGC)"
+    }
+  ],
+  "toque_de_queda": {
+    "estado": "vigente",
+    "horario": "9:00 PM a 6:00 AM",
+    "ultimo_decreto_fecha": "2026-08-12",
+    "excepciones": [
+      "Fuerza pública",
+      "Personal de salud",
+      "Operadores de servicio público",
+      "Transporte de carga",
+      "Distribución de alimentos",
+      "Estaciones de servicio",
+      "Medios de comunicación"
+    ],
+    "fuente": "Alcaldía Distrital de Buenaventura",
+    "fuente_tipo": "oficial",
+    "nota": "Verificar vigencia diaria — este tipo de decreto se ha venido renovando noche a noche, puede cambiar sin aviso previo largo."
+  },
+  "_meta": {
+    "principio": "Toda cifra en este archivo se muestra siempre con fuente y fecha de corte visibles en el frontend. Nunca se presenta como afirmación propia del portal.",
+    "ultima_revision_por_equipo": null
+  }
+}

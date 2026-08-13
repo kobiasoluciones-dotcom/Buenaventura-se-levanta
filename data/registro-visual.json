@@ -1,0 +1,14 @@
+{
+  "estado_contenido": "vacio",
+  "nota_transparencia": "Todavía no hay ningún video o foto que haya pasado el checklist de verificación del equipo. No se publica contenido visual sin verificar, aunque eso signifique que esta sección empiece vacía.",
+  "checklist_antes_de_publicar": [
+    "Origen confirmado geográfica y temporalmente",
+    "No es contenido reciclado de otro país o evento (verificación inversa de imagen/video)",
+    "Respeta dignidad: no muestra personas fallecidas ni menores identificables sin consentimiento",
+    "Consentimiento de quien grabó, para publicar con o sin crédito"
+  ],
+  "items": [],
+  "_meta": {
+    "ultima_revision_por_equipo": null
+  }
+}

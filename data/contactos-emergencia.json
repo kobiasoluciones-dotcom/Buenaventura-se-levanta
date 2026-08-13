@@ -1,0 +1,41 @@
+{
+  "nacionales": [
+    { "nombre": "Emergencias generales", "numero": "123" },
+    { "nombre": "Policía", "numero": "112" },
+    { "nombre": "Bomberos", "numero": "119" },
+    { "nombre": "Cruz Roja", "numero": "132" },
+    { "nombre": "Defensa Civil", "numero": "144" }
+  ],
+  "buenaventura": [
+    { "nombre": "Cruz Roja Buenaventura", "numero": "6022424475" },
+    { "nombre": "Bomberos Buenaventura", "numero": "2422222" },
+    { "nombre": "Defensa Civil Buenaventura", "numero": "2423719" },
+    { "nombre": "Policía Buenaventura", "numero": "165" },
+    { "nombre": "Acueducto (Hidropacífico)", "numero": "116" },
+    { "nombre": "Energía", "numero": "115" }
+  ],
+  "salud_mental": {
+    "nombre": "Línea de Salud Mental Distrital de Buenaventura",
+    "numero": "3138581219",
+    "descripcion": "Escucha, orientación y acompañamiento por profesionales capacitados",
+    "fuente": "Distrito Especial de Buenaventura",
+    "fuente_tipo": "oficial",
+    "actualizado": "2026-08-12"
+  },
+  "restablecimiento_contacto_familiar": {
+    "organizacion": "Comité Internacional de la Cruz Roja (CICR)",
+    "whatsapp": "+573212139525",
+    "email": "rcf@cruzrojacolombiana.org",
+    "linea_te_escucha": "#919 (gratis desde celular) / 01800 519 8534",
+    "fuente_tipo": "oficial"
+  },
+  "atencion_ciudadano_alcaldia": {
+    "nombre": "Recepción y gestión de ayudas humanitarias — Alcaldía Distrital",
+    "numero": "+573152517606",
+    "fuente_tipo": "oficial"
+  },
+  "_meta": {
+    "fuente_general": "Directorio verificado por el equipo de Buenaventura SE LEVANTA a partir de fuentes oficiales citadas por cada contacto.",
+    "ultima_revision_por_equipo": null
+  }
+}

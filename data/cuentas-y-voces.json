@@ -1,0 +1,32 @@
+{
+  "criterios_inclusion": [
+    "Identidad verificable — cuenta oficial, organización conocida o persona con nombre real y trayectoria previa a la crisis",
+    "Evidencia de acción real en terreno, no solo mensaje",
+    "Actividad sostenida en el tiempo, no un post aislado",
+    "Si recauda fondos, por canal verificable — no cuenta personal sin rastro"
+  ],
+  "oficiales": [
+    { "nombre": "Alcaldía Distrital de Buenaventura", "canal": "Canal de WhatsApp oficial (3 mil seguidores) + buenaventura.gov.co", "estado_verificacion": "confirmado" },
+    { "nombre": "Servicio Geológico Colombiano", "canal": "sgc.gov.co", "estado_verificacion": "confirmado" },
+    { "nombre": "UNGRD", "canal": "gestiondelriesgo.gov.co", "estado_verificacion": "confirmado" }
+  ],
+  "medios_locales": [
+    { "nombre": "Buenaventura en Línea", "canal": "buenaventuraenlinea.com", "descripcion": "Medio de noticias digital independiente de la ciudad", "estado_verificacion": "confirmado" }
+  ],
+  "ong_con_trayectoria": [
+    { "nombre": "Cruz Roja Colombiana", "estado_verificacion": "confirmado" },
+    { "nombre": "Banco de Alimentos (ABACO)", "estado_verificacion": "confirmado" }
+  ],
+  "profesionales_tecnicos": [
+    {
+      "nombre": "Iniciativa de identificación de viviendas afectadas",
+      "descripcion": "La Dirección Técnica de Vivienda del Distrito Especial de Buenaventura invita a profesionales bonaverenses a sumarse voluntariamente a la identificación de viviendas afectadas por el sismo.",
+      "estado_verificacion": "confirmado — fuente oficial (Distrito Especial de Buenaventura)"
+    }
+  ],
+  "influencers_y_personalidades": [],
+  "_meta": {
+    "nota": "La categoría de influencers/personalidades se deja vacía intencionalmente — los nombres que circularon en la investigación previa (campañas de recaudo lideradas por figuras públicas) no fueron verificados directamente por el equipo con el rigor que exige esta sección. No se publica ningún nombre aquí hasta que el equipo de Buenaventura SE LEVANTA confirme identidad, trazabilidad de fondos y evidencia de acción real.",
+    "ultima_revision_por_equipo": null
+  }
+}

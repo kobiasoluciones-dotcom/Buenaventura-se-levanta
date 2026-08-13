@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env.local
+~$*
+*.docx
+transformed_doc/
+.DS_Store

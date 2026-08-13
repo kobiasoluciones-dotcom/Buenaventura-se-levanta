@@ -1,0 +1,24 @@
+{
+  "estado_contenido": "incompleto",
+  "nota_transparencia": "El procedimiento oficial completo de registro como damnificado aún no está publicado en detalle por la Alcaldía — esta sección muestra lo que sí está confirmado y se ampliará cuando haya más información oficial.",
+  "lo_que_se_sabe": [
+    {
+      "paso": "Punto de atención presencial",
+      "detalle": "Oficina de Atención al Ciudadano, frente a la Alcaldía Distrital de Buenaventura. Lunes a viernes, 8:00 AM – 5:00 PM.",
+      "fuente_tipo": "oficial"
+    },
+    {
+      "paso": "Canal telefónico para gestión de ayudas humanitarias",
+      "detalle": "+57 315 2517606 — línea de la Alcaldía Distrital para recepción y gestión de ayudas humanitarias.",
+      "fuente_tipo": "oficial"
+    }
+  ],
+  "pendiente_de_confirmar": [
+    "Requisitos documentales exactos para registrarse como damnificado",
+    "Tipos de ayuda disponibles (subsidio, alojamiento temporal, reconstrucción) y proceso de acceso a cada una",
+    "Tiempos de respuesta esperados"
+  ],
+  "_meta": {
+    "ultima_revision_por_equipo": null
+  }
+}

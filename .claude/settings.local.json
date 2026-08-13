@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.conectacolombia.org)",
+      "WebFetch(domain:colombiatebusca.com)",
+      "WebFetch(domain:gestiondeayudascolombia.com)",
+      "WebFetch(domain:buenaventuraenlinea.com)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(timeout 30 bash -c 'until curl -sf http://localhost:3000 >/dev/null; do sleep 1; done')",
+      "Bash(npx --yes playwright install chromium)",
+      "Bash(node \"C:/Users/PC/AppData/Local/Temp/claude/d--Documentos-KobiaSismo/ea2d25fc-7c20-459f-8c60-1d2b411392b4/scratchpad/screenshot.js\")",
+      "Bash(node screenshot.js)",
+      "Bash(curl -s -o /dev/null -w \"api/registro-visual: %{http_code}\\\\n\" http://localhost:3000/api/registro-visual)"
+    ]
+  }
+}
