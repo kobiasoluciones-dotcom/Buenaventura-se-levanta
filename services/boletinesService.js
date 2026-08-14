@@ -1,36 +1,35 @@
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+const supabase = require('./supabaseClient');
 const { fechaHoyColombia } = require('./fechaUtil');
 
-const RUTA_DATOS = path.join(__dirname, '..', 'data', 'boletines-oficiales.json');
-const DIR_ARCHIVOS = path.join(__dirname, '..', 'public', 'img', 'boletines');
+const BUCKET = 'sismo-archivos';
+const NIVELES_GOBIERNO_VALIDOS = ['alcaldia', 'departamento', 'nacion'];
 
-if (!fs.existsSync(DIR_ARCHIVOS)) {
-  fs.mkdirSync(DIR_ARCHIVOS, { recursive: true });
+async function listar(nivelGobierno) {
+  let consulta = supabase.from('sismo_boletines_oficiales').select('*').order('creado_en', { ascending: false });
+  if (nivelGobierno) consulta = consulta.eq('nivel_gobierno', nivelGobierno);
+  const { data, error } = await consulta;
+  if (error) throw error;
+  return data.map(formatearSalida);
 }
 
-function leer() {
-  return JSON.parse(fs.readFileSync(RUTA_DATOS, 'utf-8'));
-}
-
-function escribir(datos) {
-  const contenido = JSON.stringify(datos, null, 2);
-  const rutaTemporal = RUTA_DATOS + '.tmp';
-  fs.writeFileSync(rutaTemporal, contenido, 'utf-8');
-  fs.renameSync(rutaTemporal, RUTA_DATOS);
-}
-
-function listar(nivelGobierno) {
-  const datos = leer();
-  if (!nivelGobierno) return datos.boletines;
-  return datos.boletines.filter((b) => b.nivel_gobierno === nivelGobierno);
+function formatearSalida(fila) {
+  return {
+    id: fila.id,
+    nivel_gobierno: fila.nivel_gobierno,
+    entidad: fila.entidad,
+    titulo: fila.titulo,
+    descripcion: fila.descripcion,
+    archivo: fila.archivo,
+    tipo_archivo: fila.tipo_archivo,
+    fecha_del_boletin: fila.fecha_del_boletin,
+    fecha_publicado: fila.fecha_publicado,
+    publicado_por: fila.publicado_por,
+  };
 }
 
 function validar(campos) {
-  const datos = leer();
-  if (!datos._meta.niveles_gobierno_validos.includes(campos.nivel_gobierno)) {
-    throw new Error(`Nivel de gobierno no reconocido. Debe ser uno de: ${datos._meta.niveles_gobierno_validos.join(', ')}`);
+  if (!NIVELES_GOBIERNO_VALIDOS.includes(campos.nivel_gobierno)) {
+    throw new Error(`Nivel de gobierno no reconocido. Debe ser uno de: ${NIVELES_GOBIERNO_VALIDOS.join(', ')}`);
   }
   if (!campos.entidad || !campos.entidad.trim()) {
     throw new Error('Falta el nombre de la entidad que emite el boletín.');
@@ -43,16 +42,24 @@ function validar(campos) {
   }
 }
 
-function crear(campos) {
-  validar(campos);
-  const datos = leer();
+async function subirArchivoAStorage(buffer, nombreUnico, mimetype) {
+  const { error } = await supabase.storage.from(BUCKET).upload(`boletines/${nombreUnico}`, buffer, {
+    contentType: mimetype,
+    upsert: false,
+  });
+  if (error) throw new Error('No se pudo subir el archivo: ' + error.message);
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(`boletines/${nombreUnico}`);
+  return data.publicUrl;
+}
 
-  const boletin = {
-    id: crypto.randomUUID(),
+async function crear(campos) {
+  validar(campos);
+
+  const fila = {
     nivel_gobierno: campos.nivel_gobierno,
     entidad: campos.entidad.trim(),
     titulo: campos.titulo.trim(),
-    descripcion: (campos.descripcion || '').trim(),
+    descripcion: (campos.descripcion || '').trim() || null,
     archivo: campos.archivo,
     tipo_archivo: campos.tipo_archivo,
     fecha_del_boletin: campos.fecha_del_boletin || null,
@@ -60,21 +67,20 @@ function crear(campos) {
     publicado_por: campos.publicado_por || 'Equipo Buenaventura SE LEVANTA',
   };
 
-  datos.boletines.unshift(boletin);
-  escribir(datos);
-  return boletin;
+  const { data, error } = await supabase.from('sismo_boletines_oficiales').insert(fila).select().single();
+  if (error) throw error;
+  return formatearSalida(data);
 }
 
-function eliminar(id) {
-  const datos = leer();
-  const boletin = datos.boletines.find((b) => b.id === id);
-  if (!boletin) throw new Error('Boletín no encontrado.');
+async function eliminar(id) {
+  const { data: fila, error: errorLectura } = await supabase.from('sismo_boletines_oficiales').select('archivo').eq('id', id).single();
+  if (errorLectura) throw new Error('Boletín no encontrado.');
 
-  const rutaArchivo = path.join(__dirname, '..', 'public', boletin.archivo);
-  if (fs.existsSync(rutaArchivo)) fs.unlinkSync(rutaArchivo);
+  const rutaEnBucket = 'boletines/' + fila.archivo.split('/boletines/')[1];
+  await supabase.storage.from(BUCKET).remove([rutaEnBucket]);
 
-  datos.boletines = datos.boletines.filter((b) => b.id !== id);
-  escribir(datos);
+  const { error } = await supabase.from('sismo_boletines_oficiales').delete().eq('id', id);
+  if (error) throw error;
 }
 
-module.exports = { listar, crear, eliminar, DIR_ARCHIVOS };
+module.exports = { listar, crear, eliminar, subirArchivoAStorage };

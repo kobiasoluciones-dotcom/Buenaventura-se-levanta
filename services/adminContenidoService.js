@@ -1,86 +1,166 @@
-const fs = require('fs');
-const path = require('path');
+const supabase = require('./supabaseClient');
+const contenidoService = require('./contenidoService');
 const { fechaHoyColombia } = require('./fechaUtil');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
-
-// Lista blanca deliberada: el panel solo puede leer/escribir estos archivos,
-// nunca una ruta arbitraria. Ver politica corporativa 4.5 (seguridad y datos).
-const ARCHIVOS_EDITABLES = {
-  'cifras-oficiales': { archivo: 'cifras-oficiales.json', etiqueta: 'Cifras oficiales' },
-  'contactos-emergencia': { archivo: 'contactos-emergencia.json', etiqueta: 'Contactos de emergencia' },
-  'directorio-ayuda': { archivo: 'directorio-ayuda.json', etiqueta: 'Directorio de ayuda' },
-  'plataformas': { archivo: 'plataformas.json', etiqueta: 'Plataformas utiles' },
-  'verificado-falso': { archivo: 'verificado-falso.json', etiqueta: 'Verificado / Falso' },
-  'como-solicitar-ayuda-oficial': { archivo: 'como-solicitar-ayuda-oficial.json', etiqueta: 'Como solicitar ayuda oficial' },
-  'cuentas-y-voces': { archivo: 'cuentas-y-voces.json', etiqueta: 'Cuentas y voces' },
-  'registro-visual': { archivo: 'registro-visual.json', etiqueta: 'Registro visual' },
+// Claves editables desde el panel ("Archivos de contenido"). "registro-visual" se
+// excluyó a propósito: ahora se arma a partir de sismo_publicaciones (sección
+// registro-visual), ya no es un bloque de texto suelto para editar aquí.
+const ETIQUETAS = {
+  'cifras-oficiales': 'Cifras oficiales',
+  'contactos-emergencia': 'Contactos de emergencia',
+  'directorio-ayuda': 'Directorio de ayuda',
+  'plataformas': 'Plataformas útiles',
+  'verificado-falso': 'Verificado / Falso',
+  'como-solicitar-ayuda-oficial': 'Cómo solicitar ayuda oficial',
+  'cuentas-y-voces': 'Cuentas y voces',
 };
 
-function listarArchivosEditables() {
-  return Object.entries(ARCHIVOS_EDITABLES).map(([clave, info]) => {
-    const datos = leerPorClave(clave);
-    return {
+// Las claves de tipo "singleton" ya traen su propio _meta.ultima_revision_por_equipo
+// desde la tabla. Las de tipo "lista" (varias filas) no tienen ese campo todavía —
+// se muestra null hasta que se agregue seguimiento de revisión por lista.
+const CLAVES_SINGLETON = new Set(['cifras-oficiales', 'contactos-emergencia', 'como-solicitar-ayuda-oficial']);
+
+async function listarArchivosEditables() {
+  const resultado = [];
+  for (const clave of Object.keys(ETIQUETAS)) {
+    const datos = await leerPorClave(clave);
+    resultado.push({
       clave,
-      etiqueta: info.etiqueta,
+      etiqueta: ETIQUETAS[clave],
       ultima_revision_por_equipo: datos && datos._meta ? datos._meta.ultima_revision_por_equipo : null,
-    };
-  });
+    });
+  }
+  return resultado;
 }
 
-function rutaPorClave(clave) {
-  const info = ARCHIVOS_EDITABLES[clave];
-  if (!info) return null;
-  return path.join(DATA_DIR, info.archivo);
+async function leerPorClave(clave) {
+  switch (clave) {
+    case 'cifras-oficiales': return contenidoService.obtenerCifrasOficiales();
+    case 'contactos-emergencia': return contenidoService.obtenerContactosEmergencia();
+    case 'directorio-ayuda': return contenidoService.obtenerDirectorioAyuda();
+    case 'plataformas': return contenidoService.obtenerPlataformas();
+    case 'verificado-falso': return contenidoService.obtenerVerificadoFalso();
+    case 'como-solicitar-ayuda-oficial': return contenidoService.obtenerComoSolicitarAyudaOficial();
+    case 'cuentas-y-voces': return contenidoService.obtenerCuentasYVoces();
+    default: return null;
+  }
 }
 
-function leerPorClave(clave) {
-  const ruta = rutaPorClave(clave);
-  if (!ruta) return null;
-  return JSON.parse(fs.readFileSync(ruta, 'utf-8'));
+async function leerCrudoPorClave(clave) {
+  const datos = await leerPorClave(clave);
+  return datos ? JSON.stringify(datos, null, 2) : null;
 }
 
-function leerCrudoPorClave(clave) {
-  const ruta = rutaPorClave(clave);
-  if (!ruta) return null;
-  return fs.readFileSync(ruta, 'utf-8');
-}
-
-function guardarPorClave(clave, textoJSON) {
-  const ruta = rutaPorClave(clave);
-  if (!ruta) throw new Error('Archivo no reconocido.');
+async function guardarPorClave(clave, textoJSON) {
+  if (!Object.prototype.hasOwnProperty.call(ETIQUETAS, clave)) {
+    throw new Error('Archivo no reconocido.');
+  }
 
   let datos;
   try {
     datos = JSON.parse(textoJSON);
   } catch (error) {
-    throw new Error('El contenido no es JSON valido: ' + error.message);
+    throw new Error('El contenido no es JSON válido: ' + error.message);
   }
   if (typeof datos !== 'object' || datos === null || Array.isArray(datos)) {
     throw new Error('El contenido debe ser un objeto JSON, no una lista ni un valor suelto.');
   }
 
-  // Escritura casi-atomica: primero a un archivo temporal, luego se reemplaza.
-  // Evita dejar el JSON a medio escribir si algo falla a mitad de camino —
-  // importa porque estos archivos incluyen cuentas bancarias reales.
-  const contenidoFormateado = JSON.stringify(datos, null, 2);
-  const rutaTemporal = ruta + '.tmp';
-  fs.writeFileSync(rutaTemporal, contenidoFormateado, 'utf-8');
-  fs.renameSync(rutaTemporal, ruta);
-
-  return datos;
+  await escribirPorClave(clave, datos);
+  return leerPorClave(clave);
 }
 
-function marcarRevisadoHoy(clave) {
-  const datos = leerPorClave(clave);
-  if (!datos) throw new Error('Archivo no reconocido.');
-  datos._meta = datos._meta || {};
+async function escribirPorClave(clave, datos) {
+  switch (clave) {
+    case 'cifras-oficiales': {
+      const { error } = await supabase.from('sismo_cifras_oficiales').update({
+        buenaventura: datos.buenaventura,
+        contexto_nacional: datos.contexto_nacional,
+        sismo_principal: datos.sismo_principal,
+        replicas_relevantes: datos.replicas_relevantes,
+        toque_de_queda: datos.toque_de_queda,
+        ultima_revision_por_equipo: datos._meta?.ultima_revision_por_equipo ?? null,
+        actualizado_en: new Date().toISOString(),
+      }).eq('id', 1);
+      if (error) throw error;
+      return;
+    }
+    case 'contactos-emergencia': {
+      const { error } = await supabase.from('sismo_contactos_emergencia').update({
+        nacionales: datos.nacionales,
+        buenaventura: datos.buenaventura,
+        salud_mental: datos.salud_mental,
+        restablecimiento_contacto_familiar: datos.restablecimiento_contacto_familiar,
+        atencion_ciudadano_alcaldia: datos.atencion_ciudadano_alcaldia,
+        ultima_revision_por_equipo: datos._meta?.ultima_revision_por_equipo ?? null,
+        actualizado_en: new Date().toISOString(),
+      }).eq('id', 1);
+      if (error) throw error;
+      return;
+    }
+    case 'como-solicitar-ayuda-oficial': {
+      const { error } = await supabase.from('sismo_como_solicitar_ayuda').update({
+        estado_contenido: datos.estado_contenido,
+        nota_transparencia: datos.nota_transparencia,
+        lo_que_se_sabe: datos.lo_que_se_sabe,
+        pendiente_de_confirmar: datos.pendiente_de_confirmar,
+        ultima_revision_por_equipo: datos._meta?.ultima_revision_por_equipo ?? null,
+        actualizado_en: new Date().toISOString(),
+      }).eq('id', 1);
+      if (error) throw error;
+      return;
+    }
+    case 'directorio-ayuda': {
+      await reemplazarLista('sismo_directorio_ayuda', (datos.iniciativas || []).map((item, i) => ({ ...item, orden: i })));
+      return;
+    }
+    case 'plataformas': {
+      const filas = [
+        ...(datos.ciudadanas || []).map((p, i) => ({ categoria: 'ciudadana', ...p, orden: i })),
+        ...(datos.oficiales || []).map((p, i) => ({ categoria: 'oficial', ...p, orden: i })),
+      ];
+      await reemplazarLista('sismo_plataformas', filas);
+      return;
+    }
+    case 'verificado-falso': {
+      await reemplazarLista('sismo_verificado_falso', datos.aclaraciones_oficiales || []);
+      return;
+    }
+    case 'cuentas-y-voces': {
+      const filas = [];
+      for (const categoria of ['oficiales', 'medios_locales', 'ong_con_trayectoria', 'profesionales_tecnicos', 'influencers_y_personalidades']) {
+        (datos[categoria] || []).forEach((item, i) => filas.push({ categoria, ...item, orden: i }));
+      }
+      await reemplazarLista('sismo_cuentas_y_voces', filas);
+      return;
+    }
+    default:
+      throw new Error('Archivo no reconocido.');
+  }
+}
+
+// Reemplaza todas las filas de una tabla de tipo "lista" — simple y predecible:
+// se borra todo y se reinserta lo que venga en el JSON editado. Aceptable porque
+// son tablas pequeñas (decenas de filas, no miles).
+async function reemplazarLista(tabla, filasNuevas) {
+  const { error: errorBorrado } = await supabase.from(tabla).delete().gte('orden', -1);
+  if (errorBorrado) throw errorBorrado;
+  if (filasNuevas.length === 0) return;
+  const { error: errorInsercion } = await supabase.from(tabla).insert(filasNuevas);
+  if (errorInsercion) throw errorInsercion;
+}
+
+async function marcarRevisadoHoy(clave) {
+  if (!CLAVES_SINGLETON.has(clave)) {
+    throw new Error('Esta sección todavía no tiene seguimiento de revisión individual (es una lista, no un bloque único).');
+  }
+  const datos = await leerPorClave(clave);
   datos._meta.ultima_revision_por_equipo = fechaHoyColombia();
-  return guardarPorClave(clave, JSON.stringify(datos));
+  await escribirPorClave(clave, datos);
+  return leerPorClave(clave);
 }
 
 module.exports = {
-  ARCHIVOS_EDITABLES,
   listarArchivosEditables,
   leerCrudoPorClave,
   guardarPorClave,

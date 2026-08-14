@@ -1,41 +1,41 @@
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+const supabase = require('./supabaseClient');
 const { fechaHoyColombia } = require('./fechaUtil');
 
-const RUTA_DATOS = path.join(__dirname, '..', 'data', 'publicaciones.json');
-const DIR_ARCHIVOS = path.join(__dirname, '..', 'public', 'img', 'publicaciones');
+const BUCKET = 'sismo-archivos';
+const SECCIONES_VALIDAS = ['ofrecimientos', 'puntos-acopio', 'registro-visual', 'noticias'];
+const NIVELES_CONFIANZA_VALIDOS = ['oficial', 'institucional', 'colectivo', 'individual'];
 
-if (!fs.existsSync(DIR_ARCHIVOS)) {
-  fs.mkdirSync(DIR_ARCHIVOS, { recursive: true });
+async function listar(seccion) {
+  let consulta = supabase.from('sismo_publicaciones').select('*').order('creado_en', { ascending: false });
+  if (seccion) consulta = consulta.eq('seccion', seccion);
+  const { data, error } = await consulta;
+  if (error) throw error;
+  return data.map(formatearSalida);
 }
 
-function leer() {
-  return JSON.parse(fs.readFileSync(RUTA_DATOS, 'utf-8'));
-}
-
-function escribir(datos) {
-  const contenido = JSON.stringify(datos, null, 2);
-  const rutaTemporal = RUTA_DATOS + '.tmp';
-  fs.writeFileSync(rutaTemporal, contenido, 'utf-8');
-  fs.renameSync(rutaTemporal, RUTA_DATOS);
-}
-
-function listar(seccion) {
-  const datos = leer();
-  if (!seccion) return datos.publicaciones;
-  return datos.publicaciones.filter((p) => p.seccion === seccion);
+function formatearSalida(fila) {
+  return {
+    id: fila.id,
+    seccion: fila.seccion,
+    tipo_presentacion: fila.tipo_presentacion,
+    titulo: fila.titulo,
+    descripcion: fila.descripcion,
+    nivel_confianza: fila.nivel_confianza,
+    archivo: fila.archivo,
+    tipo_archivo: fila.tipo_archivo,
+    url_externa: fila.url_externa,
+    vigente_hasta: fila.vigente_hasta,
+    fecha_publicado: fila.fecha_publicado,
+    publicado_por: fila.publicado_por,
+  };
 }
 
 function validar(campos) {
-  const datos = leer();
-  const { secciones_validas, niveles_confianza_validos } = datos._meta;
-
-  if (!secciones_validas.includes(campos.seccion)) {
-    throw new Error(`Sección no reconocida. Debe ser una de: ${secciones_validas.join(', ')}`);
+  if (!SECCIONES_VALIDAS.includes(campos.seccion)) {
+    throw new Error(`Sección no reconocida. Debe ser una de: ${SECCIONES_VALIDAS.join(', ')}`);
   }
-  if (!niveles_confianza_validos.includes(campos.nivel_confianza)) {
-    throw new Error(`Nivel de confianza no reconocido. Debe ser uno de: ${niveles_confianza_validos.join(', ')}`);
+  if (!NIVELES_CONFIANZA_VALIDOS.includes(campos.nivel_confianza)) {
+    throw new Error(`Nivel de confianza no reconocido. Debe ser uno de: ${NIVELES_CONFIANZA_VALIDOS.join(', ')}`);
   }
   if (!campos.titulo || !campos.titulo.trim()) {
     throw new Error('El título no puede estar vacío.');
@@ -48,41 +48,50 @@ function validar(campos) {
   }
 }
 
-function crear(campos) {
-  validar(campos);
-  const datos = leer();
+// Sube el buffer del archivo a Supabase Storage y devuelve la URL pública.
+async function subirArchivoAStorage(buffer, nombreUnico, mimetype) {
+  const { error } = await supabase.storage.from(BUCKET).upload(`publicaciones/${nombreUnico}`, buffer, {
+    contentType: mimetype,
+    upsert: false,
+  });
+  if (error) throw new Error('No se pudo subir el archivo: ' + error.message);
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(`publicaciones/${nombreUnico}`);
+  return data.publicUrl;
+}
 
-  const publicacion = {
-    id: crypto.randomUUID(),
+async function crear(campos) {
+  validar(campos);
+
+  const fila = {
     seccion: campos.seccion,
     tipo_presentacion: campos.tipo_presentacion,
     titulo: campos.titulo.trim(),
-    descripcion: (campos.descripcion || '').trim(),
+    descripcion: (campos.descripcion || '').trim() || null,
     nivel_confianza: campos.nivel_confianza,
     archivo: campos.archivo || null,
     tipo_archivo: campos.tipo_archivo || null,
     url_externa: campos.url_externa || null,
+    vigente_hasta: campos.vigente_hasta || null,
     fecha_publicado: fechaHoyColombia(),
     publicado_por: campos.publicado_por || 'Equipo Buenaventura SE LEVANTA',
   };
 
-  datos.publicaciones.unshift(publicacion);
-  escribir(datos);
-  return publicacion;
+  const { data, error } = await supabase.from('sismo_publicaciones').insert(fila).select().single();
+  if (error) throw error;
+  return formatearSalida(data);
 }
 
-function eliminar(id) {
-  const datos = leer();
-  const publicacion = datos.publicaciones.find((p) => p.id === id);
-  if (!publicacion) throw new Error('Publicación no encontrada.');
+async function eliminar(id) {
+  const { data: fila, error: errorLectura } = await supabase.from('sismo_publicaciones').select('archivo').eq('id', id).single();
+  if (errorLectura) throw new Error('Publicación no encontrada.');
 
-  if (publicacion.archivo) {
-    const rutaArchivo = path.join(__dirname, '..', 'public', publicacion.archivo);
-    if (fs.existsSync(rutaArchivo)) fs.unlinkSync(rutaArchivo);
+  if (fila.archivo) {
+    const rutaEnBucket = 'publicaciones/' + fila.archivo.split('/publicaciones/')[1];
+    await supabase.storage.from(BUCKET).remove([rutaEnBucket]);
   }
 
-  datos.publicaciones = datos.publicaciones.filter((p) => p.id !== id);
-  escribir(datos);
+  const { error } = await supabase.from('sismo_publicaciones').delete().eq('id', id);
+  if (error) throw error;
 }
 
-module.exports = { listar, crear, eliminar, DIR_ARCHIVOS };
+module.exports = { listar, crear, eliminar, subirArchivoAStorage };

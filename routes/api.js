@@ -5,44 +5,25 @@ const boletinesService = require('../services/boletinesService');
 
 const router = express.Router();
 
-router.get('/publicaciones', (req, res) => {
-  res.json(publicacionesService.listar(req.query.seccion));
-});
+function manejar(promesaFn) {
+  return async (req, res) => {
+    try {
+      res.json(await promesaFn(req));
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+}
 
-router.get('/boletines', (req, res) => {
-  res.json(boletinesService.listar(req.query.nivel_gobierno));
-});
-
-router.get('/cifras-oficiales', (req, res) => {
-  res.json(contenidoService.obtenerCifrasOficiales());
-});
-
-router.get('/contactos-emergencia', (req, res) => {
-  res.json(contenidoService.obtenerContactosEmergencia());
-});
-
-router.get('/directorio-ayuda', (req, res) => {
-  res.json(contenidoService.obtenerDirectorioAyuda());
-});
-
-router.get('/plataformas', (req, res) => {
-  res.json(contenidoService.obtenerPlataformas());
-});
-
-router.get('/verificado-falso', (req, res) => {
-  res.json(contenidoService.obtenerVerificadoFalso());
-});
-
-router.get('/como-solicitar-ayuda-oficial', (req, res) => {
-  res.json(contenidoService.obtenerComoSolicitarAyudaOficial());
-});
-
-router.get('/cuentas-y-voces', (req, res) => {
-  res.json(contenidoService.obtenerCuentasYVoces());
-});
-
-router.get('/registro-visual', (req, res) => {
-  res.json(contenidoService.obtenerRegistroVisual());
-});
+router.get('/publicaciones', manejar((req) => publicacionesService.listar(req.query.seccion)));
+router.get('/boletines', manejar((req) => boletinesService.listar(req.query.nivel_gobierno)));
+router.get('/cifras-oficiales', manejar(() => contenidoService.obtenerCifrasOficiales()));
+router.get('/contactos-emergencia', manejar(() => contenidoService.obtenerContactosEmergencia()));
+router.get('/directorio-ayuda', manejar(() => contenidoService.obtenerDirectorioAyuda()));
+router.get('/plataformas', manejar(() => contenidoService.obtenerPlataformas()));
+router.get('/verificado-falso', manejar(() => contenidoService.obtenerVerificadoFalso()));
+router.get('/como-solicitar-ayuda-oficial', manejar(() => contenidoService.obtenerComoSolicitarAyudaOficial()));
+router.get('/cuentas-y-voces', manejar(() => contenidoService.obtenerCuentasYVoces()));
+router.get('/registro-visual', manejar(() => contenidoService.obtenerRegistroVisual()));
 
 module.exports = router;
