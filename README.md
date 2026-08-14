@@ -1,59 +1,73 @@
-# Buenaventura SE LEVANTA
+# Buenaventura se levanta
 
-Portal ciudadano de información verificada sobre la emergencia sísmica en Buenaventura
-(sismo del 10 de agosto de 2026). No reemplaza a las autoridades ni a las plataformas
-ciudadanas ya existentes — consolida y verifica información dispersa en un solo lugar.
+Portal ciudadano de información, coordinación de ayudas y comunicación verificada
+para la emergencia sísmica en Buenaventura.
 
-El concepto completo del proyecto (diagnóstico, actores, principios, alcance) está en
-[`Buenaventura SE LEVANTA - Documento de Concepto.md`](./Buenaventura%20SE%20LEVANTA%20-%20Documento%20de%20Concepto.md).
+Este repositorio contiene el sistema completo y sincronizado:
 
-## Qué hace
+- [`frontend/`](./frontend/): diseño visual aprobado y portal público.
+- raíz del repositorio: backend Express, API y panel administrativo.
+- [`supabase/`](./supabase/): migraciones de base de datos y Storage.
+- [`docs/`](./docs/): arquitectura, contratos y continuidad técnica.
 
-- **Estado ahora**: cifras oficiales, toque de queda — siempre con fuente y fecha.
-- **Cómo ayudar**: directorio de donación clasificado por nivel de confianza (oficial /
-  institucional / colectivo / individual), con advertencia de fraude visible.
-- **Cómo solicitar ayuda oficial**: lo que se sabe del procedimiento, honesto sobre lo
-  que aún no está confirmado.
-- **Verificado / Falso**: desmentidos específicos de esta emergencia, con fuente.
-- **Cuentas y voces**: cuentas verificadas que sí están ayudando.
-- **Plataformas útiles**: enlaces a las plataformas ciudadanas y oficiales ya existentes
-  — no las duplicamos.
+## Referencia visual oficial
 
-## Cómo ejecutarlo
+El diseño aprobado está publicado en:
+<https://buenaventura-se-levanta.millerocoro.chatgpt.site>
+
+El código fuente exacto del portal se conserva en [`frontend/`](./frontend/).
+Los antiguos índices HTML de la raíz no pertenecen al producto final.
+
+## Arquitectura
+
+```text
+Panel /admin -> Backend Express -> Supabase -> API /api -> Frontend aprobado
+```
+
+El backend es la única capa que utiliza `SUPABASE_SERVICE_ROLE_KEY`. El navegador
+solo conoce la URL pública del API mediante `NEXT_PUBLIC_API_BASE_URL`.
+
+## Ejecución local
+
+### Backend
 
 ```bash
 npm install
-npm start          # producción
-npm run dev         # con recarga automática
+cp .env.example .env
+npm start
 ```
 
-Por defecto corre en `http://localhost:3000`.
+Por defecto corre en `http://localhost:3000`; el panel está en `/admin`.
 
-## Estado actual
+### Frontend
 
-**v1 en construcción** — contenido base cargado desde archivos JSON en `data/`
-(ver `docs/MAPA-CODIGO.md`). Sin base de datos todavía: se eligió JSON para lanzar
-rápido dado el contexto de emergencia; migrar a Supabase es el siguiente paso natural
-cuando el contenido y el flujo de edición del equipo estén validados.
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
+```
 
-**Pendiente antes de publicar en producción:**
-- Revisión humana de cada archivo en `data/` (todos tienen `ultima_revision_por_equipo: null`).
-- Confirmar directamente los datos marcados con `nota_verificacion` en `directorio-ayuda.json`.
-- Panel de administración para que el equipo edite contenido sin tocar JSON a mano.
-- Desplegar en Render.
+Configure `NEXT_PUBLIC_API_BASE_URL` con la URL del backend, sin barra final.
 
-**Explícitamente fuera de esta versión** (ver Documento de Concepto, secciones 6.1 y 12):
-red de corresponsales, alianzas con JAC/Consejos Comunitarios, vista por barrio, buscador de
-IA de cara al público. Quedan documentados como dirección futura, no como trabajo pendiente
-de esta versión.
+## Pruebas
 
-## Dependencias
+```bash
+npm test
+cd frontend && npm test
+```
 
-- Node.js 18+
-- Express 4
-- Sin base de datos externa en esta versión (JSON estático en `data/`)
+## Documentación esencial
 
-## Stack
+- [`AGENTS.md`](./AGENTS.md): instrucciones que debe seguir cualquier agente.
+- [`docs/HANDOFF-AGENTES.md`](./docs/HANDOFF-AGENTES.md): decisiones y estado de continuidad.
+- [`docs/INTEGRACION-DISENO-SUPABASE.md`](./docs/INTEGRACION-DISENO-SUPABASE.md): contrato entre capas.
+- [`docs/ENTORNOS.md`](./docs/ENTORNOS.md): URL públicas, nunca secretos.
+- [`docs/MAPA-CODIGO.md`](./docs/MAPA-CODIGO.md): mapa del backend.
 
-Node.js + Express + Vanilla JS (mismo patrón que KobiaGeotecnia y KobiaEstructurador).
-Despliegue previsto: Render.
+## Seguridad
+
+- No versionar archivos `.env` ni credenciales.
+- No exponer la clave `service_role` al frontend.
+- Las escrituras se realizan únicamente a través del panel/backend autenticado.
+- La API pública ofrece solo operaciones de lectura.
