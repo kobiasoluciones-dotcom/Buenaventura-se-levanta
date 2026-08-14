@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: buenaventura-backend
+    runtime: node
+    plan: free
+    region: oregon
+    branch: diseno-visual
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/cifras-oficiales
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # Completar tras el primer deploy con la URL real del frontend
+      # (Render puede agregar un sufijo si "buenaventura-frontend" ya existe).
+      - key: PUBLIC_SITE_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+
+  - type: web
+    name: buenaventura-frontend
+    runtime: node
+    plan: free
+    region: oregon
+    branch: diseno-visual
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      # Completar tras el primer deploy con la URL real del backend
+      # (Render puede agregar un sufijo si "buenaventura-backend" ya existe).
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false
