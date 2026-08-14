@@ -1,33 +1,48 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import test from "node:test";
 
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
+const proyectoRoot = fileURLToPath(new URL("..", import.meta.url));
+const nextBin = path.join(
+  proyectoRoot,
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "next.cmd" : "next",
+);
 
-test("renders development preview metadata", async () => {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
+// Prueba de humo: levanta el build de produccion de Next.js real (el mismo
+// `next start` que corre en Render) y confirma que la pagina responde.
+function esperarPuerto(url, intentos = 30) {
+  return new Promise((resolve, reject) => {
+    const intentar = (restantes) => {
+      fetch(url)
+        .then(resolve)
+        .catch((error) => {
+          if (restantes <= 0) return reject(error);
+          setTimeout(() => intentar(restantes - 1), 500);
+        });
+    };
+    intentar(intentos);
+  });
+}
 
-  const response = await worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
+test("el build de produccion responde con la pagina principal", async () => {
+  const puerto = 3799;
+  const proceso = spawn(nextBin, ["start", "-p", String(puerto)], {
+    cwd: proyectoRoot,
+    stdio: "ignore",
+    shell: process.platform === "win32",
+  });
 
-  assert.equal(response.status, 200);
-  assert.match(
-    response.headers.get("content-type") ?? "",
-    /^text\/html\b/i,
-  );
-  assert.match(await response.text(), developmentPreviewMeta);
+  try {
+    const respuesta = await esperarPuerto(`http://localhost:${puerto}/`);
+    assert.equal(respuesta.status, 200);
+    assert.match(respuesta.headers.get("content-type") ?? "", /^text\/html\b/i);
+    const html = await respuesta.text();
+    assert.match(html, /Buenaventura se levanta/i);
+  } finally {
+    proceso.kill();
+  }
 });

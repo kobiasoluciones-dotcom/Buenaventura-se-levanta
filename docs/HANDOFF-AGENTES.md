@@ -33,8 +33,10 @@ sistema compatible.
 | Contrato funcional | `docs/INTEGRACION-DISENO-SUPABASE.md` |
 | URL de ambientes | `docs/ENTORNOS.md` |
 
-La versión visual pública aprobada es:
-<https://buenaventura-se-levanta.millerocoro.chatgpt.site>
+La versión visual originalmente aprobada se publicó en:
+<https://buenaventura-se-levanta.millerocoro.chatgpt.site> (requiere inicio de
+sesión con ChatGPT — plataforma "Sites" de origen, ya no es el destino de
+despliegue).
 
 El código incorporado en `frontend/` corresponde al estado de integración del
 frontend identificado originalmente por el commit
@@ -42,6 +44,15 @@ frontend identificado originalmente por el commit
 
 La primera integración del backend quedó identificada por el commit
 `50a6f3d3b114831f026dceee8c0ef4ab4bf6dd87`.
+
+**Migración a Next.js estándar (14 de agosto de 2026)**: `frontend/` se movió de
+Vinext/Cloudflare Workers a Next.js estándar (`next dev`/`build`/`start`) para
+poder desplegarse en Render junto al backend. Se confirmó, antes de quitar nada,
+que `db/`, `examples/d1/`, `drizzle.config.ts`, `worker/index.ts` y
+`app/chatgpt-auth.ts` no tenían ninguna referencia desde `app/page.tsx` ni
+`app/layout.tsx` — el diseño y el contenido no cambiaron, solo la herramienta de
+build. `app/layout.tsx` ya usaba `next/font/google` (mecanismo estándar de
+Next.js), por lo que las fuentes cargan igual o mejor que antes.
 
 ## Contrato de contenido
 
