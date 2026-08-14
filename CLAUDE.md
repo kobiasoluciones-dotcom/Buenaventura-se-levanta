@@ -41,8 +41,11 @@ Dos partes que se despliegan por separado, comunicadas solo por HTTP/API públic
   `supabase/migrations/`, se corren a mano en el Editor SQL de Supabase (no hay
   conexión directa a la base de datos configurada, solo la `service_role key`).
 - **Despliegue**: Render, para las dos partes (backend y frontend), cada uno como su
-  propio servicio. Pendiente de desplegar — ver `docs/ENTORNOS.md` para las URL una
-  vez existan.
+  propio servicio, vía Blueprint (`render.yaml` en la raíz). Desplegado el 14 de
+  agosto de 2026 y funcional (verificado en navegador) — ver `docs/ENTORNOS.md`
+  para las URL y el estado actual. Pendiente: el workspace de Render tiene la
+  facturación sin resolver, lo que causa caídas intermitentes hasta que se
+  actualice el método de pago.
 
 Cadena de actualización única, no crear atajos que la salten:
 `panel /admin → backend Express → Supabase → /api → frontend`
@@ -86,6 +89,8 @@ explícitamente que lo extiendas).
 ## Estado y próximos pasos
 
 Ver `docs/HANDOFF-AGENTES.md` para el estado detallado y `docs/COORDINACION.md` para
-el historial. En resumen: backend y frontend funcionan juntos localmente con datos
-reales de Supabase, probados de punta a punta. Pendiente: desplegar ambos en Render y
-registrar las URL en `docs/ENTORNOS.md`.
+el historial. En resumen: backend y frontend desplegados en Render y funcionando con
+datos reales de Supabase (URL en `docs/ENTORNOS.md`). Pendiente: el usuario debe
+actualizar el método de pago del workspace de Render (banner "Payment failed") — hasta
+entonces el backend puede caerse y volver de forma intermitente. No asumir que el
+portal responde de forma sostenida sin revisar `docs/ENTORNOS.md` primero.
