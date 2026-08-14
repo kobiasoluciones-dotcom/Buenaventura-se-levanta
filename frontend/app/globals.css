@@ -90,16 +90,22 @@ footer{background:var(--deep);color:white;padding:95px 0 30px}.footer-grid{displ
 .empty-news p{max-width:520px;font-size:15px;line-height:1.65;color:#4b6268}
 .quote-story-news.empty-quote{display:flex;align-items:center}
 .quote-story-news.empty-quote p{font-family:var(--font-serif);font-size:20px;line-height:1.3}
-.story-image-empty{height:100%;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:40px;background:var(--deep);color:white}
-.story-image-empty span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--sun)}
-.story-image-empty p{margin:0;max-width:320px;font-size:14px;line-height:1.6;color:rgba(255,255,255,.7)}
-.side-story-empty{height:100%;background:var(--deep)}
-.card-media-empty{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;padding:24px;background:var(--deep);color:white}
-.card-media-empty span{font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:800;color:var(--sun)}
-.card-media-empty p{margin:0;font-size:11px;color:rgba(255,255,255,.6)}
-.modal-image-empty{height:100%;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:50px;background:var(--deep);color:white}
-.modal-image-empty span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--sun)}
-.modal-image-empty p{margin:0;max-width:280px;font-size:14px;line-height:1.6;color:rgba(255,255,255,.7)}
+.media-enlace{height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:11px;padding:24px;color:white;background:linear-gradient(135deg,var(--ocean),var(--green))}
+.media-enlace i{width:50px;height:50px;flex:none;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
+.media-enlace i svg{width:23px;height:23px}
+.media-enlace strong{font-family:var(--font-serif);font-size:19px;font-weight:400}
+.media-enlace span{font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:rgba(255,255,255,.75)}
+.plataforma-tiktok{background:linear-gradient(135deg,#161616,#3d3d3d)}
+.plataforma-instagram{background:linear-gradient(135deg,var(--coral),var(--sun))}
+.plataforma-facebook{background:linear-gradient(135deg,var(--ocean),var(--navy))}
+.plataforma-youtube{background:linear-gradient(135deg,var(--coral),#a83224)}
+.plataforma-whatsapp{background:linear-gradient(135deg,var(--green),#0a4a3a)}
+.plataforma-x{background:linear-gradient(135deg,var(--ink),var(--deep))}
+.plataforma-generica{background:linear-gradient(135deg,var(--ocean),var(--green))}
+.story-image-empty strong{font-size:24px}
+.modal-image-empty{padding:50px}
+.modal-image-empty strong{font-size:26px}
+.modal-image-empty span{font-size:11px}
 
 /* Cómo solicitar ayuda oficial */
 .ayuda-oficial-section{background:var(--paper);padding:130px 0 150px}
