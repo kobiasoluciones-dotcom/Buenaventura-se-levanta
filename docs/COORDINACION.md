@@ -105,6 +105,21 @@ zona exclusiva de Claude (panel interno, con su propio CSS/JS aislado).
   `NEXT_PUBLIC_API_BASE_URL` / `ALLOWED_ORIGINS` con los valores reales en vez de
   localhost.
 
+## Actualización Claude — 14 de agosto de 2026 (despliegue en Render)
+
+- `render.yaml` agregado en la raíz (Blueprint con los dos servicios) y desplegado
+  desde el dashboard de Render, workspace `KobiaSoluciones`, rama `diseno-visual`.
+  URL reales ya registradas en `docs/ENTORNOS.md`.
+- **Funciona, pero no es confiable todavía** — confirmado en navegador que el
+  frontend sí muestra cifras reales en vivo desde el backend (CORS y
+  `NEXT_PUBLIC_API_BASE_URL` están bien). El bloqueador real es que el
+  workspace de Render tiene la facturación sin resolver (usuario sin fondos
+  por ahora), lo que causa caídas/reinicios intermitentes del backend — detalle
+  y checklist en `docs/ENTORNOS.md`.
+- Próxima sesión/agente: no dar por hecho que el portal público en
+  `buenaventura-frontend.onrender.com` responde de forma sostenida sin antes
+  revisar si se resolvió la facturación en `docs/ENTORNOS.md`.
+
 ## Cómo actualizar este archivo
 
 Agrega una entrada con fecha cuando termines algo que el otro necesita saber, o cuando
