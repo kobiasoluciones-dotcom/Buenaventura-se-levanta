@@ -93,6 +93,18 @@ zona exclusiva de Claude (panel interno, con su propio CSS/JS aislado).
   consuma esto — mismo patrón que ya usaron para `#ofrecimientos` y `#puntos-acopio`,
   solo cambia el valor de `seccion` en la query.
 
+## Actualización Claude — 14 de agosto de 2026 (cierre de sesión)
+
+- Migración 002 de Supabase **confirmada aplicada** (probado insertando y borrando
+  una fila de prueba con `seccion: 'necesidades'`).
+- `CLAUDE.md` y `docs/MAPA-CODIGO.md` reescritos por completo para reflejar la
+  arquitectura real actual (Supabase + backend Express + frontend Next.js
+  independiente) — estaban desactualizados desde antes de la migración a Supabase.
+- Pendiente para la próxima sesión, de cualquier agente: desplegar backend y
+  frontend en Render, registrar las URL en `docs/ENTORNOS.md`, y con eso completar
+  `NEXT_PUBLIC_API_BASE_URL` / `ALLOWED_ORIGINS` con los valores reales en vez de
+  localhost.
+
 ## Cómo actualizar este archivo
 
 Agrega una entrada con fecha cuando termines algo que el otro necesita saber, o cuando
