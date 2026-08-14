@@ -42,5 +42,8 @@
       "url": "https://www.datos.gov.co/",
       "descripcion": "Bases de datos abiertas de emergencias UNGRD, para quien busca profundidad estadística."
     }
-  ]
+  ],
+  "_meta": {
+    "ultima_revision_por_equipo": null
+  }
 }

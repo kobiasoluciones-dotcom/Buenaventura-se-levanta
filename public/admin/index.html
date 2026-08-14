@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel — Buenaventura SE LEVANTA</title>
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+
+<header class="ph-header">
+  <span class="ph-header__titulo">Buenaventura SE LEVANTA — Panel interno</span>
+  <button id="boton-salir" class="ph-boton ph-boton--fantasma" hidden>Cerrar sesión</button>
+</header>
+
+<main class="ph-contenedor">
+
+  <section id="vista-login" class="ph-tarjeta">
+    <h1 class="ph-titulo">Entrar</h1>
+    <p class="ph-texto-ayuda">Panel interno del equipo — no es público.</p>
+    <form id="form-login">
+      <label class="ph-etiqueta" for="campo-contrasena">Contraseña</label>
+      <input class="ph-input" type="password" id="campo-contrasena" autocomplete="current-password" required>
+      <button class="ph-boton" type="submit">Entrar</button>
+      <p id="error-login" class="ph-error" hidden></p>
+    </form>
+  </section>
+
+  <section id="vista-panel" hidden>
+
+    <div class="ph-tabs" role="tablist">
+      <button class="ph-tab activo" id="tab-archivos" type="button">Archivos de contenido</button>
+      <button class="ph-tab" id="tab-publicaciones" type="button">Publicaciones (flyers y video)</button>
+      <button class="ph-tab" id="tab-boletines" type="button">Boletines oficiales</button>
+    </div>
+
+    <div id="vista-archivos" class="ph-layout">
+      <nav id="lista-archivos" class="ph-lista-archivos" aria-label="Archivos de contenido"></nav>
+
+      <div class="ph-editor">
+        <div id="editor-vacio" class="ph-tarjeta">
+          <p class="ph-texto-ayuda">Selecciona un archivo de la izquierda para editarlo.</p>
+        </div>
+
+        <div id="editor-activo" class="ph-tarjeta" hidden>
+          <div class="ph-editor__cabecera">
+            <h2 id="editor-titulo" class="ph-titulo"></h2>
+            <span id="editor-revision" class="ph-chip"></span>
+          </div>
+          <p class="ph-texto-ayuda">
+            Edita el JSON directamente. Se valida antes de guardar — si algo está mal escrito, no se guarda y te dice qué corregir.
+          </p>
+          <textarea id="editor-textarea" class="ph-textarea" spellcheck="false"></textarea>
+          <p id="editor-error" class="ph-error" hidden></p>
+          <div class="ph-editor__acciones">
+            <button id="boton-guardar" class="ph-boton">Guardar cambios</button>
+            <button id="boton-marcar-revisado" class="ph-boton ph-boton--secundario">Marcar como revisado hoy</button>
+            <span id="editor-estado" class="ph-texto-ayuda"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="vista-publicaciones" class="ph-layout" hidden>
+      <div class="ph-tarjeta ph-form-publicacion">
+        <h2 class="ph-titulo">Publicar flyer o video</h2>
+        <p class="ph-texto-ayuda">El contenido real se publica tal cual — no lo reescribimos como texto.</p>
+
+        <div class="ph-tabs ph-tabs--modo" role="tablist">
+          <button class="ph-tab activo" id="modo-archivo" type="button">Subir archivo</button>
+          <button class="ph-tab" id="modo-enlace" type="button">Tarjeta con enlace</button>
+        </div>
+
+        <form id="form-publicacion">
+          <label class="ph-etiqueta" for="campo-seccion">Sección</label>
+          <select class="ph-input" id="campo-seccion" required>
+            <option value="ofrecimientos">Ofrecimientos</option>
+            <option value="puntos-acopio">Puntos de acopio</option>
+            <option value="registro-visual">Registro visual</option>
+            <option value="noticias">Noticias</option>
+          </select>
+
+          <label class="ph-etiqueta" for="campo-nivel">Nivel de confianza</label>
+          <select class="ph-input" id="campo-nivel" required>
+            <option value="oficial">Oficial</option>
+            <option value="institucional">Institucional</option>
+            <option value="colectivo">Colectivo</option>
+            <option value="individual">Individual</option>
+          </select>
+
+          <label class="ph-etiqueta" for="campo-titulo">Título</label>
+          <input class="ph-input" id="campo-titulo" type="text" required placeholder="Ej: Fundación Mati — Buenaventura nos necesita">
+
+          <label class="ph-etiqueta" for="campo-descripcion">Descripción corta (opcional)</label>
+          <textarea class="ph-input" id="campo-descripcion" rows="2" placeholder="Contexto breve, si hace falta"></textarea>
+
+          <div id="campos-archivo">
+            <label class="ph-etiqueta" for="campo-archivo">Archivo (imagen o video, ya autorizado)</label>
+            <input class="ph-input" id="campo-archivo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime">
+          </div>
+
+          <div id="campos-enlace" hidden>
+            <label class="ph-etiqueta" for="campo-url">Enlace a la publicación original</label>
+            <input class="ph-input" id="campo-url" type="url" placeholder="https://...">
+          </div>
+
+          <button class="ph-boton" type="submit">Publicar</button>
+          <p id="error-publicacion" class="ph-error" hidden></p>
+        </form>
+      </div>
+
+      <div class="ph-vista-previa">
+        <h2 class="ph-titulo">Vista previa</h2>
+        <p class="ph-texto-ayuda">Así se vería la tarjeta — el diseño final lo define el equipo de diseño visual, esto es funcional.</p>
+        <div id="tarjeta-previa" class="ph-tarjeta-publicacion ph-tarjeta-publicacion--vacia">
+          Completa el formulario para ver la vista previa.
+        </div>
+
+        <h2 class="ph-titulo" style="margin-top:24px">Ya publicado</h2>
+        <div id="lista-publicaciones" class="ph-grid-publicaciones"></div>
+      </div>
+    </div>
+
+    <div id="vista-boletines" class="ph-layout" hidden>
+      <div class="ph-tarjeta ph-form-publicacion">
+        <h2 class="ph-titulo">Publicar boletín oficial</h2>
+        <p class="ph-texto-ayuda">Documento o imagen original de la Alcaldía, la Gobernación o una entidad nacional.</p>
+
+        <form id="form-boletin">
+          <label class="ph-etiqueta" for="boletin-nivel">Nivel de gobierno</label>
+          <select class="ph-input" id="boletin-nivel" required>
+            <option value="alcaldia">Alcaldía (Distrito de Buenaventura)</option>
+            <option value="departamento">Departamento (Gobernación del Valle)</option>
+            <option value="nacion">Nación (UNGRD, SGC, etc.)</option>
+          </select>
+
+          <label class="ph-etiqueta" for="boletin-entidad">Entidad exacta</label>
+          <input class="ph-input" id="boletin-entidad" type="text" required placeholder="Ej: Alcaldía Distrital de Buenaventura">
+
+          <label class="ph-etiqueta" for="boletin-titulo">Título</label>
+          <input class="ph-input" id="boletin-titulo" type="text" required placeholder="Ej: Informe de situación No. 3">
+
+          <label class="ph-etiqueta" for="boletin-fecha">Fecha del boletín (la del documento, no la de hoy)</label>
+          <input class="ph-input" id="boletin-fecha" type="date">
+
+          <label class="ph-etiqueta" for="boletin-descripcion">Descripción corta (opcional)</label>
+          <textarea class="ph-input" id="boletin-descripcion" rows="2"></textarea>
+
+          <label class="ph-etiqueta" for="boletin-archivo">Archivo (imagen o PDF)</label>
+          <input class="ph-input" id="boletin-archivo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf">
+
+          <button class="ph-boton" type="submit">Publicar boletín</button>
+          <p id="error-boletin" class="ph-error" hidden></p>
+        </form>
+      </div>
+
+      <div class="ph-vista-previa">
+        <h2 class="ph-titulo">Ya publicado</h2>
+        <div id="lista-boletines" class="ph-grid-publicaciones"></div>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<script src="/admin/admin.js"></script>
+</body>
+</html>

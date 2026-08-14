@@ -1,0 +1,25 @@
+{
+  "boletines": [
+    {
+      "id": "46765b29-db6e-4fd0-8245-f04371de63e1",
+      "nivel_gobierno": "alcaldia",
+      "entidad": "Alcaldía Distrital de Buenaventura",
+      "titulo": "Informe de situación y acciones de respuesta tras el sismo",
+      "descripcion": "Balance oficial: afectados, viviendas destruidas/averiadas, fallecidos, lesionados y alojamientos temporales habilitados.",
+      "archivo": "/img/boletines/1786670286069-7847820e.jpeg",
+      "tipo_archivo": "imagen",
+      "fecha_del_boletin": "2026-08-12",
+      "fecha_publicado": "2026-08-13",
+      "publicado_por": "Equipo Buenaventura SE LEVANTA"
+    }
+  ],
+  "_meta": {
+    "niveles_gobierno_validos": [
+      "alcaldia",
+      "departamento",
+      "nacion"
+    ],
+    "nota": "Documentos e imagenes originales que producen las entidades oficiales (Alcaldia Distrital de Buenaventura, Gobernacion del Valle del Cauca, entidades nacionales como UNGRD y SGC). Distinto de directorio-ayuda.json (flyers de terceros) y de cifras-oficiales.json (datos ya extraidos) — aqui se conserva el documento/imagen original como respaldo.",
+    "ultima_revision_por_equipo": null
+  }
+}

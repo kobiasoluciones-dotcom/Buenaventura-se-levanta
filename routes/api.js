@@ -1,7 +1,17 @@
 const express = require('express');
 const contenidoService = require('../services/contenidoService');
+const publicacionesService = require('../services/publicacionesService');
+const boletinesService = require('../services/boletinesService');
 
 const router = express.Router();
+
+router.get('/publicaciones', (req, res) => {
+  res.json(publicacionesService.listar(req.query.seccion));
+});
+
+router.get('/boletines', (req, res) => {
+  res.json(boletinesService.listar(req.query.nivel_gobierno));
+});
 
 router.get('/cifras-oficiales', (req, res) => {
   res.json(contenidoService.obtenerCifrasOficiales());

@@ -1,4 +1,4 @@
-﻿// Buenaventura SE LEVANTA - front-end vanilla JS
+// Buenaventura SE LEVANTA - front-end vanilla JS (Premium Version)
 // Cada bloque hace fetch a /api/... y renderiza. Sin dependencias externas
 // a proposito: la conectividad en Buenaventura es limitada, cada request cuenta.
 
@@ -82,13 +82,13 @@ function detalleConIcono(icono, etiqueta, valor) {
 
 function enlaceTelefono(numero) {
   const tel = String(numero).replace(/[^\d+#]/g, '');
-  return `<a class="accion-chip accion-chip--llamar" href="tel:${tel}">${ICONOS.telefono}<span>${numero}</span></a>`;
+  return `<a class="accion-chip accion-chip--llamar" href="tel:${tel}" title="Llamar a ${numero}">${ICONOS.telefono}</a>`;
 }
 
 function enlaceWhatsapp(numero) {
   const limpio = String(numero).replace(/[^\d]/g, '');
   const destino = limpio.length === 10 ? `57${limpio}` : limpio;
-  return `<a class="accion-chip accion-chip--whatsapp" href="https://wa.me/${destino}" target="_blank" rel="noopener">${ICONOS.whatsapp}<span>${numero}</span></a>`;
+  return `<a class="accion-chip accion-chip--whatsapp" href="https://wa.me/${destino}" target="_blank" rel="noopener" title="Enviar WhatsApp a ${numero}">${ICONOS.whatsapp}</a>`;
 }
 
 function accionWeb(url, etiqueta = 'Abrir enlace') {
@@ -131,10 +131,15 @@ function renderGrupoContactos(titulo, items, tipo = 'telefono') {
     <article class="tarjeta-contacto" data-contacto="${tipoContacto(item, tipo)}">
       <span class="sello-entidad sello-entidad--mini sello-entidad--contacto" aria-hidden="true">${iconoContacto(item, tipo)}</span>
       <div class="tarjeta-contacto__contenido">
-        <h3 class="tarjeta-contacto__nombre">${item.nombre || item.organizacion}</h3>
-        ${item.descripcion ? `<p class="tarjeta-contacto__descripcion">${item.descripcion}</p>` : ''}
-        ${item.numero ? enlaceTelefono(item.numero) : ''}
-        ${item.whatsapp ? enlaceWhatsapp(item.whatsapp) : ''}
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <h3 class="tarjeta-contacto__nombre">${item.nombre || item.organizacion}</h3>
+          ${item.numero ? `<span class="tarjeta-contacto__numero">${item.numero}</span>` : ''}
+          ${item.descripcion ? `<p class="tarjeta-contacto__descripcion">${item.descripcion}</p>` : ''}
+        </div>
+        <div class="acciones-inline" style="margin-top: 0;">
+          ${item.numero ? enlaceTelefono(item.numero) : ''}
+          ${item.whatsapp ? enlaceWhatsapp(item.whatsapp) : ''}
+        </div>
         ${item.email ? detalleConIcono(ICONOS.web, 'Email', item.email) : ''}
         ${item.linea_te_escucha ? detalleConIcono(ICONOS.telefono, 'Linea Te Escucha', item.linea_te_escucha) : ''}
         ${item.fuente ? elFuente(item.fuente, item.actualizado) : ''}
@@ -487,7 +492,6 @@ function inicializarBotonTema() {
 
   const actualizarEtiqueta = () => {
     const temaOscuro = temaEfectivoActual() === 'dark';
-    boton.textContent = temaOscuro ? 'Oscuro' : 'Claro';
     boton.setAttribute('aria-label', temaOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
     boton.title = temaOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
   };

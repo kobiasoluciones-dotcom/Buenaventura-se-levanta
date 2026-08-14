@@ -10,7 +10,17 @@
       "Bash(npx --yes playwright install chromium)",
       "Bash(node \"C:/Users/PC/AppData/Local/Temp/claude/d--Documentos-KobiaSismo/ea2d25fc-7c20-459f-8c60-1d2b411392b4/scratchpad/screenshot.js\")",
       "Bash(node screenshot.js)",
-      "Bash(curl -s -o /dev/null -w \"api/registro-visual: %{http_code}\\\\n\" http://localhost:3000/api/registro-visual)"
+      "Bash(curl -s -o /dev/null -w \"api/registro-visual: %{http_code}\\\\n\" http://localhost:3000/api/registro-visual)",
+      "Bash(curl -s -o /dev/null -w \"raiz: %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"admin/api/sesion: %{http_code}\\\\n\" http://localhost:3000/admin/api/sesion)",
+      "Bash(curl -s http://localhost:3000/admin/api/sesion)",
+      "Bash(curl -s -c cookies.txt -X POST http://localhost:3000/admin/api/login -H \"Content-Type: application/json\" -d '{\"contrasena\":\"cambiar-esta-clave\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/admin/api/login -H \"Content-Type: application/json\" -d '{\"contrasena\":\"mala\"}')",
+      "Bash(curl -s -b cookies.txt http://localhost:3000/admin/api/sesion)",
+      "Bash(curl -s -b cookies.txt http://localhost:3000/admin/api/archivos)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/admin/api/archivos/cifras-oficiales)",
+      "Bash(lsof -ti:3000 -sTCP:LISTEN)",
+      "Bash(xargs -r kill)"
     ]
   }
 }

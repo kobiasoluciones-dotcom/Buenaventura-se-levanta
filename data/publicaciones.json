@@ -1,0 +1,85 @@
+{
+  "publicaciones": [
+    {
+      "id": "7fb3ac95-57f4-4ea1-b0da-4466f370869b",
+      "seccion": "noticias",
+      "tipo_presentacion": "tarjeta_enlace",
+      "titulo": "Noticias Caracol — Panorama en Cali, Buenaventura y Quibdó",
+      "descripcion": "Así está el panorama en Cali, Buenaventura y Quibdó luego de un poco más de 72 horas del fuerte terremoto en Colombia.",
+      "nivel_confianza": "institucional",
+      "archivo": null,
+      "tipo_archivo": null,
+      "url_externa": "https://web.facebook.com/reel/2310606429714229",
+      "fecha_publicado": "2026-08-13",
+      "publicado_por": "Equipo Buenaventura SE LEVANTA"
+    },
+    {
+      "id": "d82ca369-528f-4feb-864f-50e352cffdca",
+      "seccion": "ofrecimientos",
+      "tipo_presentacion": "tarjeta_enlace",
+      "titulo": "Ejemplo de tarjeta con enlace (demo)",
+      "descripcion": "Asi se veria una publicacion de una red social externa que no alojamos nosotros, solo enlazamos.",
+      "nivel_confianza": "colectivo",
+      "archivo": null,
+      "tipo_archivo": null,
+      "url_externa": "https://www.instagram.com/ejemplo-demo",
+      "fecha_publicado": "2026-08-13",
+      "publicado_por": "Equipo Buenaventura SE LEVANTA"
+    },
+    {
+      "id": "d58072fa-4b5a-4495-8369-6110fc364bad",
+      "seccion": "ofrecimientos",
+      "tipo_presentacion": "alojado",
+      "titulo": "Donatón para Buenaventura #SOSBuenaventura",
+      "descripcion": "Se necesitan materiales de construcción para familias damnificadas. Contacto y Nequi: 310 511 2477.",
+      "nivel_confianza": "individual",
+      "archivo": "/img/publicaciones/1786665852697-da5280da.jpeg",
+      "tipo_archivo": "imagen",
+      "url_externa": null,
+      "fecha_publicado": "2026-08-13",
+      "publicado_por": "Equipo Buenaventura SE LEVANTA"
+    },
+    {
+      "id": "8c597c97-7130-40ac-8ec7-3cf7832a7eed",
+      "seccion": "ofrecimientos",
+      "tipo_presentacion": "alojado",
+      "titulo": "Fundación Mati — Buenaventura nos necesita",
+      "descripcion": "Ya en Buenaventura apoyando a familias afectadas: recuperación de viviendas y dotación. Comunícate al 317 430 2187 (también Nequi).",
+      "nivel_confianza": "institucional",
+      "archivo": "/img/publicaciones/1786665852671-31c5f9fd.jpeg",
+      "tipo_archivo": "imagen",
+      "url_externa": null,
+      "fecha_publicado": "2026-08-13",
+      "publicado_por": "Equipo Buenaventura SE LEVANTA"
+    },
+    {
+      "id": "772e80ae-cd82-4027-b001-b6a941106a6b",
+      "seccion": "puntos-acopio",
+      "tipo_presentacion": "alojado",
+      "titulo": "Punto de recepción de donaciones — Calle 70C",
+      "descripcion": "Dirección: Calle 70 C # 1J 00. Recibe ropa en buen estado, alimentos no perecederos.",
+      "nivel_confianza": "individual",
+      "archivo": "/img/publicaciones/1786665778871-b2ed5145.jpeg",
+      "tipo_archivo": "imagen",
+      "url_externa": null,
+      "fecha_publicado": "2026-08-13",
+      "publicado_por": "Equipo Buenaventura SE LEVANTA"
+    }
+  ],
+  "_meta": {
+    "secciones_validas": [
+      "ofrecimientos",
+      "puntos-acopio",
+      "registro-visual",
+      "noticias"
+    ],
+    "niveles_confianza_validos": [
+      "oficial",
+      "institucional",
+      "colectivo",
+      "individual"
+    ],
+    "nota": "Cada publicación es contenido real (imagen/video subido, o tarjeta con enlace a la publicación original) — no texto redactado por el equipo a partir del flyer. Ver Documento de Concepto, sección 6.1 y conversación sobre tipos de flyer.",
+    "ultima_revision_por_equipo": null
+  }
+}

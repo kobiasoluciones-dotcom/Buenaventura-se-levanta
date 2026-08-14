@@ -5,3 +5,4 @@ node_modules/
 *.docx
 transformed_doc/
 .DS_Store
+*.log
