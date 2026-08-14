@@ -2,7 +2,7 @@ const supabase = require('./supabaseClient');
 const { fechaHoyColombia } = require('./fechaUtil');
 
 const BUCKET = 'sismo-archivos';
-const SECCIONES_VALIDAS = ['ofrecimientos', 'puntos-acopio', 'registro-visual', 'noticias'];
+const SECCIONES_VALIDAS = ['ofrecimientos', 'puntos-acopio', 'necesidades', 'salud', 'registro-visual', 'noticias'];
 const NIVELES_CONFIANZA_VALIDOS = ['oficial', 'institucional', 'colectivo', 'individual'];
 
 async function listar(seccion) {

@@ -94,7 +94,7 @@ create table if not exists sismo_cuentas_y_voces (
 
 create table if not exists sismo_publicaciones (
   id uuid primary key default gen_random_uuid(),
-  seccion text not null check (seccion in ('ofrecimientos','puntos-acopio','registro-visual','noticias')),
+  seccion text not null check (seccion in ('ofrecimientos','puntos-acopio','necesidades','salud','registro-visual','noticias')),
   tipo_presentacion text not null check (tipo_presentacion in ('alojado','tarjeta_enlace')),
   titulo text not null,
   descripcion text,
@@ -140,3 +140,9 @@ alter table sismo_verificado_falso enable row level security;
 alter table sismo_cuentas_y_voces enable row level security;
 alter table sismo_publicaciones enable row level security;
 alter table sismo_boletines_oficiales enable row level security;
+
+-- Archivos públicos de publicaciones y boletines. Las escrituras se hacen
+-- únicamente con service_role desde el backend.
+insert into storage.buckets (id, name, public)
+values ('sismo-archivos', 'sismo-archivos', true)
+on conflict (id) do update set public = excluded.public;

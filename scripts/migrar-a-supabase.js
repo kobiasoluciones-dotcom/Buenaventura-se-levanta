@@ -5,6 +5,8 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const DATA_DIR = path.join(__dirname, '..', 'data');
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const BUCKET = 'sismo-archivos';
 
 function leerJSON(nombre) {
   return JSON.parse(fs.readFileSync(path.join(DATA_DIR, nombre), 'utf-8'));
@@ -22,6 +24,27 @@ async function insertarFilas(tabla, filas) {
   }
   const { error } = await supabase.from(tabla).insert(filas);
   console.log(tabla + ':', error ? 'ERROR - ' + error.message : `OK (${filas.length} filas)`);
+}
+
+function tipoContenido(ruta) {
+  const extension = path.extname(ruta).toLowerCase();
+  return ({ '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.pdf': 'application/pdf', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime' })[extension] || 'application/octet-stream';
+}
+
+async function migrarArchivoLocal(ruta, carpeta) {
+  if (!ruta || !ruta.startsWith('/img/')) return ruta || null;
+  const rutaLocal = path.join(PUBLIC_DIR, ruta.replace(/^\//, ''));
+  if (!fs.existsSync(rutaLocal)) {
+    console.warn(`Archivo local no encontrado, se conserva la ruta original: ${ruta}`);
+    return ruta;
+  }
+  const rutaBucket = `${carpeta}/${path.basename(rutaLocal)}`;
+  const { error } = await supabase.storage.from(BUCKET).upload(rutaBucket, fs.readFileSync(rutaLocal), {
+    contentType: tipoContenido(rutaLocal),
+    upsert: true,
+  });
+  if (error) throw new Error(`No se pudo migrar ${ruta}: ${error.message}`);
+  return supabase.storage.from(BUCKET).getPublicUrl(rutaBucket).data.publicUrl;
 }
 
 async function main() {
@@ -110,31 +133,39 @@ async function main() {
   await insertarFilas('sismo_cuentas_y_voces', filasCuentas);
 
   const publicaciones = leerJSON('publicaciones.json');
-  await insertarFilas('sismo_publicaciones', publicaciones.publicaciones.map((p) => ({
-    seccion: p.seccion,
-    tipo_presentacion: p.tipo_presentacion,
-    titulo: p.titulo,
-    descripcion: p.descripcion || null,
-    nivel_confianza: p.nivel_confianza,
-    archivo: p.archivo || null,
-    tipo_archivo: p.tipo_archivo || null,
-    url_externa: p.url_externa || null,
-    fecha_publicado: p.fecha_publicado,
-    publicado_por: p.publicado_por,
-  })));
+  const filasPublicaciones = [];
+  for (const p of publicaciones.publicaciones) {
+    filasPublicaciones.push({
+      seccion: p.seccion,
+      tipo_presentacion: p.tipo_presentacion,
+      titulo: p.titulo,
+      descripcion: p.descripcion || null,
+      nivel_confianza: p.nivel_confianza,
+      archivo: await migrarArchivoLocal(p.archivo, 'publicaciones'),
+      tipo_archivo: p.tipo_archivo || null,
+      url_externa: p.url_externa || null,
+      fecha_publicado: p.fecha_publicado,
+      publicado_por: p.publicado_por,
+    });
+  }
+  await insertarFilas('sismo_publicaciones', filasPublicaciones);
 
   const boletines = leerJSON('boletines-oficiales.json');
-  await insertarFilas('sismo_boletines_oficiales', boletines.boletines.map((b) => ({
-    nivel_gobierno: b.nivel_gobierno,
-    entidad: b.entidad,
-    titulo: b.titulo,
-    descripcion: b.descripcion || null,
-    archivo: b.archivo,
-    tipo_archivo: b.tipo_archivo,
-    fecha_del_boletin: b.fecha_del_boletin || null,
-    fecha_publicado: b.fecha_publicado,
-    publicado_por: b.publicado_por,
-  })));
+  const filasBoletines = [];
+  for (const b of boletines.boletines) {
+    filasBoletines.push({
+      nivel_gobierno: b.nivel_gobierno,
+      entidad: b.entidad,
+      titulo: b.titulo,
+      descripcion: b.descripcion || null,
+      archivo: await migrarArchivoLocal(b.archivo, 'boletines'),
+      tipo_archivo: b.tipo_archivo,
+      fecha_del_boletin: b.fecha_del_boletin || null,
+      fecha_publicado: b.fecha_publicado,
+      publicado_por: b.publicado_por,
+    });
+  }
+  await insertarFilas('sismo_boletines_oficiales', filasBoletines);
 
   console.log('\nMigración de datos completa.');
 }
