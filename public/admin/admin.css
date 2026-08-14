@@ -142,6 +142,46 @@ body {
 
 .ph-editor__acciones { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
 
+/* ---------- Editor de listas con formularios reales (sin JSON) ---------- */
+
+.ph-lista-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.ph-tarjeta-item {
+  background: var(--ph-bg);
+  border: 1px solid var(--ph-border);
+  border-radius: 6px;
+  padding: 14px;
+}
+.ph-tarjeta-item .ph-input:last-of-type { margin-bottom: 8px; }
+
+.ph-boton-eliminar-item {
+  background: none;
+  border: none;
+  color: var(--ph-peligro);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0 0;
+}
+.ph-boton-eliminar-item:hover { text-decoration: underline; }
+
+.ph-fieldset-categoria {
+  border: 1px solid var(--ph-border);
+  border-radius: var(--ph-radio);
+  padding: 14px 14px 4px;
+  margin: 0 0 18px;
+}
+.ph-fieldset-categoria legend {
+  font-weight: 700;
+  font-size: 14px;
+  padding: 0 6px;
+}
+
 @media (max-width: 720px) {
   .ph-layout { flex-direction: column; }
   .ph-lista-archivos { flex-direction: row; flex-wrap: wrap; width: 100%; }

@@ -50,3 +50,30 @@ backend en el navegador.
 2. Servicio `buenaventura-backend` → Environment → agregar
    `PUBLIC_SITE_URL=https://buenaventura-frontend.onrender.com` (cosmético, ver
    nota arriba).
+
+## Bug encontrado y corregido: `ALLOWED_ORIGINS` apuntaba al dominio viejo (14 de agosto de 2026, noche)
+
+Contradice lo que decía este mismo archivo más arriba ("CORS sí está bien
+configurado") — algo lo revirtió después de esa verificación (posiblemente un
+redeploy o un reinicio asociado a la facturación pendiente). Detectado porque
+un usuario publicó un enlace de TikTok en "Ofrecimientos" desde `/admin` y no
+aparecía en la página pública.
+
+**Diagnóstico**: `ALLOWED_ORIGINS` en el servicio `buenaventura-backend` de
+Render tenía el dominio viejo de ChatGPT Sites
+(`https://buenaventura-se-levanta.millerocoro.chatgpt.site`) en vez del
+dominio real del frontend (`https://buenaventura-frontend.onrender.com`). El
+backend respondía 200 con los datos correctos, pero sin el header
+`Access-Control-Allow-Origin` para el origen real del frontend — el
+navegador bloqueaba silenciosamente **todas** las peticiones dinámicas de la
+página pública (cifras, contactos, publicaciones, boletines), no solo la
+publicación nueva. `curl` sin cabecera `Origin` no lo detecta porque el CORS
+lo aplica el navegador, no el servidor — hay que probar con
+`curl -H "Origin: https://buenaventura-frontend.onrender.com" ...` o mirar la
+consola de un navegador real.
+
+**Corrección**: cambiar `ALLOWED_ORIGINS` en Render → `buenaventura-backend`
+→ Environment a `https://buenaventura-frontend.onrender.com`. Si hace falta
+mantener también el dominio viejo por alguna razón, separar con coma. Después
+de guardar, Render redespliega solo — confirmar con la misma prueba de
+`curl -H "Origin: ..."` que el header sí aparece antes de dar por cerrado.
