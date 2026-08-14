@@ -5,10 +5,14 @@ const { fechaHoyColombia } = require('./fechaUtil');
 // Claves editables desde el panel ("Archivos de contenido"). "registro-visual" se
 // excluyó a propósito: ahora se arma a partir de sismo_publicaciones (sección
 // registro-visual), ya no es un bloque de texto suelto para editar aquí.
+// Las etiquetas coinciden a propósito con los nombres de sección de la página
+// pública (frontend/app/page.tsx) — es lo que ve quien está publicando desde
+// aquí, así que si el nombre visible en la página cambia, esta etiqueta debe
+// cambiar con él para no generar confusión sobre dónde va a salir cada dato.
 const ETIQUETAS = {
-  'cifras-oficiales': 'Cifras oficiales',
-  'contactos-emergencia': 'Contactos de emergencia',
-  'directorio-ayuda': 'Directorio de ayuda',
+  'cifras-oficiales': 'Cifras oficiales (Información oficial)',
+  'contactos-emergencia': 'Equipos de socorro (Contactos de emergencia)',
+  'directorio-ayuda': 'Directorio verificado de ayuda',
   'plataformas': 'Plataformas útiles',
   'verificado-falso': 'Verificado / Falso',
   'como-solicitar-ayuda-oficial': 'Cómo solicitar ayuda oficial',

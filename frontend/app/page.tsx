@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 type HelpType = "acopio" | "ofrece" | "necesita" | "salud";
-type HelpItem = { id: string; type: HelpType; eyebrow: string; title: string; place: string; image: string; mediaType?: "imagen" | "video"; verified: boolean; detail: string; href?: string | null };
-type SolidarityIconName = "heart" | "hands" | "union" | "box" | "care" | "spark";
+type HelpItem = { id: string; type: HelpType; eyebrow: string; title: string; place: string; image: string | null; mediaType?: "imagen" | "video"; verified: boolean; detail: string; href?: string | null };
+type SolidarityIconName = "heart" | "hands" | "union" | "box" | "care" | "spark" | "check";
 type PublicationSection = "ofrecimientos" | "puntos-acopio" | "necesidades" | "salud" | "registro-visual" | "noticias";
 type Publication = { id: string; seccion: PublicationSection; titulo: string; descripcion?: string | null; nivel_confianza: string; archivo?: string | null; tipo_archivo?: "imagen" | "video" | null; url_externa?: string | null; fecha_publicado: string };
 type OfficialFigures = { buenaventura: { fecha_corte: string; fuente: string; afectados: number; viviendas_destruidas: { total: number }; viviendas_averiadas: { total: number }; lesionados: number; fallecidos: number }; sismo_principal: { magnitud: number; fecha?: string; hora_local?: string; epicentro?: string; fuente?: string }; replicas_relevantes?: { fecha: string; hora_local?: string; magnitud: number; ubicacion?: string; fuente?: string }[]; toque_de_queda?: { estado: string; horario?: string; ultimo_decreto_fecha?: string; excepciones?: string[]; fuente?: string; nota?: string } };
@@ -45,6 +45,7 @@ function SolidarityIcon({ name, className = "" }: { name: SolidarityIconName; cl
     {name === "box" && <><path d="m4 8 8-4 8 4v9l-8 4-8-4Z" /><path d="m4 8 8 4 8-4M12 12v9" /><path d="M10.5 7.2c.6-.7 1.7-.6 2.1.2.5-.8 1.6-.9 2.2-.2.7.9 0 2.1-2.2 3.3-2.1-1.2-2.8-2.4-2.1-3.3Z" /></>}
     {name === "care" && <><path d="M20.8 5.7a5.4 5.4 0 0 0-7.7-.1L12 6.7l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 22l8.8-8.7a5.4 5.4 0 0 0 0-7.6Z" /><path d="M5.8 13h3l1.2-3 2.1 6 1.6-3h4.5" /></>}
     {name === "spark" && <><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" /><circle cx="12" cy="12" r="3.2" /></>}
+    {name === "check" && <><path d="M6 3.5h9.2L19 7.3V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" /><path d="M15.2 3.5v3.8H19" /><path d="m8.3 13.2 2.3 2.3 5-5" /></>}
   </svg>;
 }
 
@@ -71,11 +72,11 @@ const filters: { id: "todos" | HelpType; label: string; icon: SolidarityIconName
   { id: "todos", label: "Todo", icon: "spark" }, { id: "acopio", label: "Puntos de acopio", icon: "box" }, { id: "ofrece", label: "Puedo ayudar", icon: "heart" }, { id: "necesita", label: "Necesito ayuda", icon: "hands" }, { id: "salud", label: "Salud", icon: "care" },
 ];
 
-const sectionPresentation: Record<"ofrecimientos" | "puntos-acopio" | "necesidades" | "salud", { type: HelpType; eyebrow: string; fallbackImage: string }> = {
-  ofrecimientos: { type: "ofrece", eyebrow: "Puedo ayudar", fallbackImage: "/media/02-WhatsApp-Image-2026-08-13-at-2.24.36-PM.jpeg" },
-  "puntos-acopio": { type: "acopio", eyebrow: "Punto de acopio", fallbackImage: "/media/08-WhatsApp-Image-2026-08-13-at-2.19.18-PM.jpeg" },
-  necesidades: { type: "necesita", eyebrow: "Necesidad prioritaria", fallbackImage: "/media/03-WhatsApp-Image-2026-08-13-at-2.22.31-PM.jpeg" },
-  salud: { type: "salud", eyebrow: "Salud y cuidado", fallbackImage: "/media/14-WhatsApp-Image-2026-08-13-at-2.23.56-PM.jpeg" },
+const sectionPresentation: Record<"ofrecimientos" | "puntos-acopio" | "necesidades" | "salud", { type: HelpType; eyebrow: string }> = {
+  ofrecimientos: { type: "ofrece", eyebrow: "Puedo ayudar" },
+  "puntos-acopio": { type: "acopio", eyebrow: "Punto de acopio" },
+  necesidades: { type: "necesita", eyebrow: "Necesidad prioritaria" },
+  salud: { type: "salud", eyebrow: "Salud y cuidado" },
 };
 
 function publicationToHelpItem(publication: Publication): HelpItem | null {
@@ -87,7 +88,7 @@ function publicationToHelpItem(publication: Publication): HelpItem | null {
     eyebrow: presentation.eyebrow,
     title: publication.titulo,
     place: publication.url_externa ? "Publicación externa" : "Buenaventura",
-    image: publication.archivo || presentation.fallbackImage,
+    image: publication.archivo || null,
     mediaType: publication.tipo_archivo || "imagen",
     verified: ["oficial", "institucional"].includes(publication.nivel_confianza),
     detail: publication.descripcion || "Consulta la pieza original y confirma su vigencia antes de actuar.",
@@ -312,7 +313,7 @@ export default function Home() {
       <section className="help-section" id="ayuda">
         <div className="shell help-intro"><div><p className="section-index">05 — RED DE AYUDA</p><h2>Que la ayuda<br /><em>encuentre su camino.</em></h2></div><p>Clasificamos la información que circula en redes y estados para que puedas actuar desde un solo lugar.</p></div>
         <div className="shell filters" role="group" aria-label="Filtrar publicaciones de ayuda">{filters.map((item) => <button className={filter === item.id ? "active" : ""} key={item.id} onClick={() => setFilter(item.id)}><SolidarityIcon name={item.icon} />{item.label}</button>)}</div>
-        <div className="shell help-grid">{filteredItems.map((item, index) => <article className={`help-card help-card-${index % 3}`} key={item.id}><button className="card-media" onClick={() => setSelected(item)} aria-label={`Abrir información: ${item.title}`}>{item.mediaType === "video" ? <video src={item.image} muted playsInline preload="metadata" /> : <img src={item.image} alt="" />}<span className="open-card">Ver información <i>↗</i></span></button><div className="card-copy"><div className="card-topline"><span>{item.eyebrow}</span><span className={item.verified ? "status verified" : "status reviewing"}>{item.verified ? "✓ Verificado" : "◌ En revisión"}</span></div><h3>{item.title}</h3><p>{item.place}</p></div></article>)}</div>
+        <div className="shell help-grid">{filteredItems.map((item, index) => <article className={`help-card help-card-${index % 3}`} key={item.id}><button className="card-media" onClick={() => setSelected(item)} aria-label={`Abrir información: ${item.title}`}>{item.image ? (item.mediaType === "video" ? <video src={item.image} muted playsInline preload="metadata" /> : <img src={item.image} alt="" />) : <div className="card-media-empty"><span>Enlace externo</span><p>Sin imagen alojada</p></div>}<span className="open-card">Ver información <i>↗</i></span></button><div className="card-copy"><div className="card-topline"><span>{item.eyebrow}</span><span className={item.verified ? "status verified" : "status reviewing"}>{item.verified ? "✓ Verificado" : "◌ En revisión"}</span></div><h3>{item.title}</h3><p>{item.place}</p></div></article>)}</div>
       </section>
 
       <section className="directorio-section" id="directorio-ayuda">
@@ -345,7 +346,7 @@ export default function Home() {
       <section className="registro-visual-section" id="registro-visual">
         <div className="shell section-title-row"><div><p className="section-index">07 — REGISTRO VISUAL</p><h2>Foto y video,<br />solo si pasa el filtro.</h2></div></div>
         <div className="shell registro-grid">
-          {registroVisual && registroVisual.items.length > 0 ? <div className="registro-items">{registroVisual.items.map((item) => <article key={item.titulo}><h3>{item.titulo}</h3>{item.descripcion && <p>{item.descripcion}</p>}<p className="alert-source">Verificado el {formatDate(item.fecha_verificacion)}</p></article>)}</div> : <div className="registro-empty"><p>{registroVisual?.nota_transparencia ?? "Todavía no hay ningún video o foto que haya pasado el checklist de verificación del equipo. No se publica contenido visual sin verificar, aunque eso signifique que esta sección empiece vacía."}</p></div>}
+          {registroVisual && registroVisual.items.length > 0 ? <div className="registro-items">{registroVisual.items.map((item) => <article key={item.titulo}><h3>{item.titulo}</h3>{item.descripcion && <p>{item.descripcion}</p>}<p className="alert-source">Verificado el {formatDate(item.fecha_verificacion)}</p></article>)}</div> : <div className="registro-empty"><i className="registro-empty-icon"><SolidarityIcon name="check" /></i><p>{registroVisual?.nota_transparencia ?? "Todavía no hay ningún video o foto que haya pasado el checklist de verificación del equipo. No se publica contenido visual sin verificar, aunque eso signifique que esta sección empiece vacía."}</p></div>}
           <div className="registro-checklist"><h3>Antes de publicar, el equipo confirma:</h3><ul>{(registroVisual?.checklist_antes_de_publicar ?? fallbackChecklistRegistro).map((item) => <li key={item}>{item}</li>)}</ul></div>
         </div>
       </section>
@@ -393,7 +394,7 @@ export default function Home() {
 
       <footer><div className="shell footer-grid"><div className="footer-brand"><span className="brand-mark footer-mark"><b>B</b><i /></span><h2>Buenaventura<br /><strong>se levanta</strong></h2><p>Una iniciativa ciudadana hecha por y para la comunidad.</p></div><div><h3>Información</h3><a href="#cifras">Cifras oficiales</a><a href="#alertas">Réplicas y toque de queda</a><a href="#hoy">Actualidad</a><a href="#boletines">Boletines</a><a href="#verificacion">Verificado / Falso</a><a href="#registro-visual">Registro visual</a></div><div><h3>Ayuda</h3><a href="#ayuda-oficial">Solicitar ayuda oficial</a><a href="#ayuda">Necesito ayuda</a><a href="#ayuda">Puedo ayudar</a><a href="#directorio-ayuda">Directorio verificado</a><a href="#socorro">Equipos de socorro</a><a href="#atencion-medica">Atención médica</a></div><div><h3>Emergencias</h3><a href="tel:123">Línea 123</a><a href="tel:132">Cruz Roja 132</a><a href="tel:119">Bomberos 119</a><a href="#acerca-de">Acerca de la iniciativa</a><button onClick={shareSite}>Compartir el portal ↗</button></div></div><div className="shell footer-bottom"><span>© 2026 Buenaventura se levanta</span><span>Fondos editoriales ilustrativos · Registro visual con fuente</span><a href="#inicio">Volver arriba ↑</a></div></footer>
 
-      {selected && <div className="modal-backdrop" role="presentation" onMouseDown={() => setSelected(null)}><article className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setSelected(null)} aria-label="Cerrar">×</button><div className="modal-image">{selected.mediaType === "video" ? <video src={selected.image} controls playsInline /> : <img src={selected.image} alt={`Pieza informativa: ${selected.title}`} />}</div><div className="modal-copy"><div className="card-topline"><span>{selected.eyebrow}</span><span className={selected.verified ? "status verified" : "status reviewing"}>{selected.verified ? "✓ Verificado" : "◌ En revisión"}</span></div><h2 id="modal-title">{selected.title}</h2><p className="modal-place">⌖ {selected.place}</p><p>{selected.detail}</p><div className="safety-note"><strong>Antes de donar</strong><span>Confirma la vigencia y la identidad del responsable. Las solicitudes monetarias requieren verificación adicional.</span></div><div className="modal-actions">{selected.href && <a href={selected.href} target="_blank" rel="noreferrer">Abrir publicación original ↗</a>}<button onClick={shareSite}>Compartir información ↗</button><button onClick={() => setSelected(null)}>Seguir explorando</button></div></div></article></div>}
+      {selected && <div className="modal-backdrop" role="presentation" onMouseDown={() => setSelected(null)}><article className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setSelected(null)} aria-label="Cerrar">×</button><div className="modal-image">{selected.image ? (selected.mediaType === "video" ? <video src={selected.image} controls playsInline /> : <img src={selected.image} alt={`Pieza informativa: ${selected.title}`} />) : <div className="modal-image-empty"><span>Enlace externo</span><p>Esta publicación no tiene imagen alojada en el portal — ábrela en su fuente original para verla.</p></div>}</div><div className="modal-copy"><div className="card-topline"><span>{selected.eyebrow}</span><span className={selected.verified ? "status verified" : "status reviewing"}>{selected.verified ? "✓ Verificado" : "◌ En revisión"}</span></div><h2 id="modal-title">{selected.title}</h2><p className="modal-place">⌖ {selected.place}</p><p>{selected.detail}</p><div className="safety-note"><strong>Antes de donar</strong><span>Confirma la vigencia y la identidad del responsable. Las solicitudes monetarias requieren verificación adicional.</span></div><div className="modal-actions">{selected.href && <a href={selected.href} target="_blank" rel="noreferrer">Abrir publicación original ↗</a>}<button onClick={shareSite}>Compartir información ↗</button><button onClick={() => setSelected(null)}>Seguir explorando</button></div></div></article></div>}
 
       {menuOpen && <div className="menu-overlay"><div className="shell menu-top"><a className="brand inverse" href="#inicio"><span className="brand-mark"><b>B</b><i /></span><span>Buenaventura<br /><strong>se levanta</strong></span></a><button onClick={() => setMenuOpen(false)} aria-label="Cerrar menú">×</button></div><nav className="shell mobile-nav" aria-label="Menú móvil">{[["Hoy", "#hoy"], ["Información oficial", "#cifras"], ["Equipos de socorro", "#socorro"], ["Red de ayuda", "#ayuda"], ["Verificación", "#verificacion"], ["Boletines", "#boletines"]].map(([label, href], index) => <a href={href} onClick={() => setMenuOpen(false)} key={href}><span>0{index + 1}</span>{label}<i>↗</i></a>)}</nav><p className="shell menu-footer">Información ciudadana para actuar con dignidad, rapidez y cuidado.</p></div>}
     </main>
