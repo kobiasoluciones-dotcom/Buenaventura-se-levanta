@@ -10,6 +10,8 @@ services:
     startCommand: npm start
     healthCheckPath: /api/cifras-oficiales
     envVars:
+      - key: NODE_VERSION
+        value: 24.18.1
       - key: ADMIN_PASSWORD
         sync: false
       - key: SUPABASE_URL
@@ -33,6 +35,8 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
+      - key: NODE_VERSION
+        value: 24.18.1
       # Completar tras el primer deploy con la URL real del backend
       # (Render puede agregar un sufijo si "buenaventura-backend" ya existe).
       - key: NEXT_PUBLIC_API_BASE_URL
