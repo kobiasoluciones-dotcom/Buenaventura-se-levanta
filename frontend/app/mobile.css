@@ -1,0 +1,263 @@
+/*
+ * Navegación móvil tipo app — Buenaventura SE LEVANTA.
+ *
+ * Todo vive dentro de @media (max-width:760px), el mismo corte que ya usa
+ * app/globals.css para su propio bloque responsive. Se importa DESPUÉS de
+ * globals.css (ver app/layout.tsx) para ganar la cascada sin necesitar
+ * !important en ningún lado.
+ *
+ * Regla de oro de este archivo: solo se escriben reglas que ESCONDEN
+ * (display:none) o AJUSTAN tamaño/espaciado. Nunca una regla que fuerce
+ * display:block/flex/grid sobre algo que no lo tenía — así el escritorio
+ * (fuera de este media query) queda intacto por construcción, y las
+ * secciones que sí se muestran conservan su display original.
+ *
+ * Convención que consume esto: cada <section> de app/page.tsx lleva un
+ * atributo data-vista (definido en app/components/vistas.ts) con la o las
+ * pestañas a las que pertenece; <main> lleva data-tab con la pestaña activa.
+ */
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* MobileTabBar y EmergencySheet se montan siempre (React no sabe el ancho de
+ * pantalla en el servidor), pero solo deben verse ≤760px. Sin esta regla,
+ * el <nav> de la barra caería en el flujo normal del documento —al no
+ * tener position:fixed fuera del media query— y aparecería como un bloque
+ * suelto de botones sin estilo al final de la página en escritorio. */
+.tab-bar { display: none; }
+
+/* El botón "Ver N nuevas" se monta siempre que useNovedades() detecte algo
+ * (a cualquier ancho: el sondeo no depende del viewport), pero solo se
+ * diseña y se muestra dentro del media query de abajo — en escritorio la
+ * página larga ya deja ver la publicación nueva en su lugar normal al
+ * hacer scroll, así que ahí el botón se queda oculto por esta regla. */
+.novedades-bar { display: none; }
+
+/* Los datos financieros del directorio (page.tsx: DatoConCopiar) ganan botón
+ * de copiar y el WhatsApp gana ícono — pero solo dentro del media query de
+ * abajo. Por defecto se ven exactamente como el <span>Label: value</span>
+ * plano de antes: el botón y el ícono se ocultan, y ::after repone el ": "
+ * que antes venía escrito en el texto. */
+.directorio-account { display: block; }
+.directorio-account-label::after { content: ": "; }
+.directorio-copy { display: none; }
+.directorio-account-wa svg { display: none; }
+
+@media (max-width: 760px) {
+
+  /* ============================================================
+   * 1. Vistas: solo reglas que esconden.
+   * ============================================================ */
+  main[data-tab="hoy"] > [data-vista]:not([data-vista~="hoy"]) { display: none; }
+  main[data-tab="ayuda"] > [data-vista]:not([data-vista~="ayuda"]) { display: none; }
+  main[data-tab="verificado"] > [data-vista]:not([data-vista~="verificado"]) { display: none; }
+  main[data-tab="mas"] > [data-vista]:not([data-vista~="mas"]) { display: none; }
+  /* data-tab="sos" no existe: el botón SOS abre EmergencySheet por encima de
+     la pestaña activa, sin cambiarla ni ocultar nada. */
+
+  /* ============================================================
+   * 2 y 3. Cabecera fija + barra inferior.
+   *
+   * emergency-bar y site-header no llevan data-vista (por diseño quedan
+   * fuera de las reglas de arriba: siempre visibles). Antes eran
+   * position:absolute pensado para un scroll único y largo; en el modo por
+   * pestañas se fijan arriba para que el número de emergencia y el logo
+   * sigan alcanzables mientras se hace scroll dentro de una vista. Como ya
+   * no viven en el flujo normal, main gana un padding-top que reemplaza el
+   * hueco que antes daba el padding-top gigante del hero — por eso ese
+   * padding se reduce más abajo, en la sección 4.
+   * ============================================================ */
+  main {
+    padding-top: 94px; /* 38px (emergency-bar) + 56px (header compacto) */
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+  }
+
+  .emergency-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 61; }
+
+  /* El header original es transparente a propósito: en el diseño de una sola
+     página, siempre lo primero detrás es el hero oscuro. Con pestañas eso ya
+     no es cierto — en "ayuda"/"verificado"/"más" lo primero detrás es el
+     fondo claro de la página, y el texto blanco del header quedaba casi
+     invisible. Fondo sólido propio, no depende de qué haya detrás. */
+  .site-header { position: fixed; top: 38px; left: 0; right: 0; z-index: 60; background: var(--deep); }
+  .nav-wrap { height: 56px; }
+  .menu-button { display: none; } /* la barra inferior reemplaza el hamburguesa en este ancho */
+
+  .tab-bar {
+    position: fixed; inset: auto 0 0 0; z-index: 62;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    background: var(--deep);
+    border-top: 1px solid rgba(255, 255, 255, .16);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tab-bar-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+    min-height: 56px; padding: 9px 2px 6px;
+    background: transparent; border: 0; color: rgba(255, 255, 255, .62);
+    font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  }
+  .tab-bar-item svg { width: 21px; height: 21px; }
+  .tab-bar-item[aria-current="page"] { color: var(--sun); }
+  .tab-bar-icon { position: relative; display: inline-flex; }
+  .tab-bar-badge {
+    position: absolute; top: -2px; right: -3px; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--coral); border: 1.5px solid var(--deep);
+  }
+  .tab-bar-item-sos { position: relative; justify-content: flex-end; color: var(--coral); }
+  .tab-bar-sos {
+    position: absolute; top: -19px; left: 50%; transform: translateX(-50%);
+    width: 58px; height: 58px; border-radius: 50%;
+    background: var(--coral); color: white; border: 4px solid var(--paper);
+    display: grid; place-items: center; cursor: pointer;
+    box-shadow: 0 8px 20px -6px rgba(237, 101, 77, .85);
+  }
+  .tab-bar-sos svg { width: 24px; height: 24px; }
+  .tab-bar-item-sos > span:last-child { margin-top: 40px; }
+
+  /* ============================================================
+   * 4. Menos scroll por vista: reducir lo que globals.css ya redujo a 760px.
+   * ============================================================ */
+  .hero { min-height: 0; height: auto; }
+  .hero-grid { padding-top: 26px; padding-bottom: 40px; }
+  .hero-copy h1 { font-size: clamp(30px, 9vw, 40px); margin-top: 16px; }
+  .hero-intro { font-size: 13px; }
+  .hero-collage { height: 220px; margin-top: 16px; }
+  .hero-photo-main { height: 200px; }
+  .hero-photo-small { height: 130px; }
+  .hero-bottom { position: static; margin-top: 16px; color: rgba(255, 255, 255, .7); }
+
+  .action-marquee { margin: 0; } /* la franja "peek" de -35px no tiene sentido como primera pieza de una vista */
+
+  .manifesto { padding: 40px 0 44px; }
+  .manifesto h2 { font-size: 30px; }
+  .figures-section { padding: 40px 0 48px; }
+  .figures-heading h2 { font-size: clamp(30px, 8vw, 40px); }
+  .figure-flow { margin-top: 36px; }
+  .figure-item { min-height: 90px; }
+  .figure-item strong { font-size: 34px; }
+  .alert-section { padding: 40px 0; }
+  .today-section { padding: 40px 0 48px; }
+  .section-title-row h2 { font-size: clamp(28px, 7.5vw, 36px); }
+
+  .socorro-section { padding: 48px 0 52px; }
+  .ayuda-oficial-section { padding: 44px 0 50px; }
+  .help-section { padding: 44px 0 50px; }
+  .help-intro h2 { font-size: clamp(28px, 7.5vw, 36px); }
+  .directorio-section { padding: 44px 0 50px; }
+  .medical-section { padding: 44px 0; }
+  .medical-copy h2 { font-size: clamp(28px, 7.5vw, 36px); }
+  .medical-art { height: 300px; }
+
+  .registro-visual-section { padding: 44px 0 50px; }
+  .verification-section { padding: 44px 0; } /* sobrescribe el 95px del bloque 760px de globals.css: ya no hace falta compensar el header absoluto */
+  .verification-grid h2 { font-size: 34px; }
+  .bulletins-section { padding: 44px 0 50px; }
+  .plataformas-section { padding: 44px 0 50px; }
+  .cuentas-section { padding: 44px 0 50px; }
+  .acerca-section { padding: 44px 0 50px; }
+  .resources-section { padding: 44px 0 50px; }
+  .final-call { padding: 48px 0; }
+  .final-call h2 { font-size: 40px; }
+  footer { padding: 48px 0 24px; }
+
+  /* Badge "N nuevas" de la pestaña Ayuda (useNovedades). */
+  .novedades-bar {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    background: var(--sun); color: var(--ink); border: 0; border-radius: 999px;
+    padding: 13px 18px; margin: 20px 0 -12px; font-size: 12px; font-weight: 800;
+    letter-spacing: .02em; cursor: pointer;
+  }
+  .novedades-bar svg { width: 16px; height: 16px; flex: none; }
+
+  /* ============================================================
+   * 5. Tarjetas: pila vertical, no carrusel; datos financieros con copiar.
+   * ============================================================ */
+  .filters { margin-top: 24px; padding-top: 16px; }
+  .help-grid {
+    display: grid; grid-template-columns: 1fr; gap: 16px;
+    overflow: visible; scroll-snap-type: none; width: auto; padding-bottom: 0;
+  }
+  .help-card, .help-card-1, .help-card-2 { min-width: auto; margin-top: 0; }
+  .card-media { aspect-ratio: 1.5; }
+
+  .directorio-grid { gap: 16px; }
+  .directorio-card { padding: 18px; }
+  .directorio-accounts { gap: 8px; }
+  .directorio-account {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; font-weight: 400;
+  }
+  .directorio-account-label {
+    font-size: 8.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #64787d;
+    display: block;
+  }
+  .directorio-account-label::after { content: none; } /* en la pila vertical de móvil el label ya va en su propia línea, sin ":" */
+  .directorio-account-value {
+    display: block; font-size: 13px; font-weight: 700; letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums; word-break: break-word;
+  }
+  .directorio-account > span:first-child { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .directorio-copy {
+    flex: none; display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--paper);
+    padding: 9px 11px; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    min-height: 38px; cursor: pointer;
+  }
+  .directorio-copy svg { width: 13px; height: 13px; }
+  .directorio-copy.done { background: var(--lime); border-color: var(--lime); color: var(--ink); }
+  .directorio-account-wa { color: var(--green); font-weight: 700; }
+  .directorio-account-wa svg { display: inline-block; width: 18px; height: 18px; flex: none; }
+
+  .contact-group a { min-height: 52px; }
+  .contact-group a span { color: var(--sun); }
+
+  /* ============================================================
+   * 6. Hoja de llamadas de emergencia (EmergencySheet).
+   * ============================================================ */
+  .sos-sheet-wrap { position: fixed; inset: 0; z-index: 200; }
+  .sos-sheet-bg { position: absolute; inset: 0; background: rgba(5, 37, 45, .62); }
+  .sos-sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; max-height: 82svh;
+    background: var(--paper); color: var(--ink);
+    border-radius: 22px 22px 0 0; display: flex; flex-direction: column;
+    animation: sos-sheet-rise .26s cubic-bezier(.2, .9, .3, 1);
+  }
+  @keyframes sos-sheet-rise { from { transform: translateY(100%); } }
+  .sos-sheet-head {
+    flex: none; display: flex; align-items: center; gap: 10px;
+    padding: 16px; border-bottom: 1px solid var(--line);
+  }
+  .sos-sheet-head h2 { margin: 0; font-size: 17px; letter-spacing: -.03em; }
+  .sos-sheet-head p { margin: 2px 0 0; font-size: 10.5px; color: #6d7d81; }
+  .sos-sheet-close {
+    margin-left: auto; width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--line); background: transparent; display: grid; place-items: center;
+    font-size: 18px; line-height: 1; cursor: pointer;
+  }
+  .sos-sheet-body {
+    overflow-y: auto; padding: 14px 16px calc(22px + env(safe-area-inset-bottom));
+  }
+  .sos-group { margin-top: 16px; }
+  .sos-group:first-child { margin-top: 0; }
+  .sos-group-title { margin: 0 0 8px; font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: #64787d; }
+  .sos-call {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    background: var(--ink); color: var(--paper); border-radius: 13px; padding: 14px; margin-bottom: 8px; min-height: 60px;
+  }
+  .sos-call svg { width: 20px; height: 20px; flex: none; }
+  .sos-call-name { font-size: 13px; font-weight: 600; line-height: 1.25; }
+  .sos-call-name small { display: block; font-size: 10px; opacity: .72; font-weight: 400; margin-top: 2px; }
+  .sos-call-number { margin-left: auto; font-size: 17px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sos-call-urgent { background: var(--coral); }
+  .sos-call-mind { background: var(--ocean); }
+  .sos-call-wa { background: var(--green); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sos-sheet { animation: none; }
+  }
+}

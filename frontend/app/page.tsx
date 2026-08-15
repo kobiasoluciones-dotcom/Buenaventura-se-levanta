@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { SolidarityIcon, type SolidarityIconName } from "./components/SolidarityIcon";
+import { MobileTabBar } from "./components/MobileTabBar";
+import { EmergencySheet, fallbackContactosNacionales, fallbackContactosBuenaventura, type EmergencyContacts } from "./components/EmergencySheet";
+import { useNovedades } from "./components/useNovedades";
+import { vistaDeAncla, type VistaId } from "./components/vistas";
+import { fetchJson } from "./lib/api";
 
 type HelpType = "acopio" | "ofrece" | "necesita" | "salud";
 type HelpItem = { id: string; type: HelpType; eyebrow: string; title: string; place: string; image: string | null; mediaType?: "imagen" | "video"; verified: boolean; detail: string; href?: string | null };
-type SolidarityIconName = "heart" | "hands" | "union" | "box" | "care" | "spark" | "check" | "link";
 type PublicationSection = "ofrecimientos" | "puntos-acopio" | "necesidades" | "salud" | "registro-visual" | "noticias";
 type Publication = { id: string; seccion: PublicationSection; titulo: string; descripcion?: string | null; nivel_confianza: string; archivo?: string | null; tipo_archivo?: "imagen" | "video" | null; url_externa?: string | null; fecha_publicado: string };
 type OfficialFigures = { buenaventura: { fecha_corte: string; fuente: string; afectados: number; viviendas_destruidas: { total: number }; viviendas_averiadas: { total: number }; lesionados: number; fallecidos: number }; sismo_principal: { magnitud: number; fecha?: string; hora_local?: string; epicentro?: string; fuente?: string }; replicas_relevantes?: { fecha: string; hora_local?: string; magnitud: number; ubicacion?: string; fuente?: string }[]; toque_de_queda?: { estado: string; horario?: string; ultimo_decreto_fecha?: string; excepciones?: string[]; fuente?: string; nota?: string } };
 type Verification = { afirmacion: string; estado: string; explicacion: string; fuente?: string | null };
 type Bulletin = { id: string; nivel_gobierno: "alcaldia" | "departamento" | "nacion"; entidad: string; titulo: string; descripcion?: string | null; archivo: string; fecha_del_boletin?: string | null; fecha_publicado: string };
-type ContactoLinea = { nombre: string; numero: string };
-type EmergencyContacts = { nacionales?: ContactoLinea[]; buenaventura?: ContactoLinea[]; salud_mental?: { numero?: string; nombre?: string; descripcion?: string; fuente?: string }; restablecimiento_contacto_familiar?: { organizacion?: string; whatsapp?: string; email?: string; linea_te_escucha?: string }; atencion_ciudadano_alcaldia?: { nombre?: string; numero?: string } };
 type Plataforma = { nombre: string; url: string; descripcion?: string | null };
 type Plataformas = { ciudadanas: Plataforma[]; oficiales: Plataforma[] };
 type CuentaVoz = { nombre: string; canal?: string | null; descripcion?: string | null; estado_verificacion?: string | null };
@@ -23,9 +26,6 @@ type RegistroVisual = { estado_contenido: string; nota_transparencia: string; ch
 type IniciativaDirectorio = { nombre: string; nivel_confianza: string; descripcion?: string | null; ubicacion?: string | null; horario?: string | null; recibe?: string[] | null; no_recibe?: string[] | null; cuenta?: string | null; llave_bre_b?: string | null; llave_daviplata?: string | null; cuenta_bancolombia_ahorros?: string | null; contacto_whatsapp?: string | null; puntos_entrega?: string[] | null; fuente?: string | null; nota_verificacion?: string | null };
 type DirectorioAyuda = { advertencia_fraude: { titulo: string; puntos: string[] }; niveles_confianza: Record<string, string>; iniciativas: IniciativaDirectorio[] };
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/$/, "");
-
-function apiUrl(path: string) { return `${API_BASE_URL}${path}` }
 function formatNumber(value: number) { return new Intl.NumberFormat("es-CO").format(value) }
 function formatDate(value?: string | null) {
   if (!value) return "Fecha por confirmar";
@@ -49,23 +49,20 @@ function MarcaPlataforma({ url, className = "" }: { url?: string | null; classNa
   return <div className={`media-enlace ${plataforma?.clase ?? "plataforma-generica"} ${className}`}><i><SolidarityIcon name="link" /></i><strong>{plataforma?.label ?? "Enlace externo"}</strong><span>Sin imagen alojada en el portal</span></div>;
 }
 
-async function fetchJson<T>(path: string, signal: AbortSignal): Promise<T> {
-  const response = await fetch(apiUrl(path), { signal, headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(`API ${response.status}: ${path}`);
-  return response.json() as Promise<T>;
-}
-
-function SolidarityIcon({ name, className = "" }: { name: SolidarityIconName; className?: string }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {name === "heart" && <path d="M20.8 5.6a5.5 5.5 0 0 0-7.8 0L12 6.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 22l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />}
-    {name === "hands" && <><path d="M8.2 20 5 18.2a3.8 3.8 0 0 1-1.9-3.3v-3.4a1.5 1.5 0 0 1 3 0v2.1" /><path d="m6 13.2 2.7 1.5a2.8 2.8 0 0 1 1.3 2.4V21" /><path d="m15.8 20 3.2-1.8a3.8 3.8 0 0 0 1.9-3.3v-3.4a1.5 1.5 0 0 0-3 0v2.1" /><path d="m18 13.2-2.7 1.5a2.8 2.8 0 0 0-1.3 2.4V21" /><path d="M15.1 4.2a2.6 2.6 0 0 0-3.1.5 2.6 2.6 0 0 0-4.1 3.1c.6 1.7 4.1 3.9 4.1 3.9s3.5-2.2 4.1-3.9a2.6 2.6 0 0 0-1-3.6Z" /></>}
-    {name === "union" && <><path d="m3.5 10.5 4-4 4.2 4.2-2.1 2.1a1.7 1.7 0 0 0 2.4 2.4l3.7-3.7" /><path d="m12.3 7.2 1.5-1.5a2.5 2.5 0 0 1 3.5 0l3.2 3.2" /><path d="m3 10 7.5 7.5a2 2 0 0 0 2.8 0l.5-.5" /><path d="m20.5 9-6.7 8" /><path d="M2 8.5 5.5 5 8 7.5 4.5 11Z" /><path d="m16 7.5 2.5-2.5L22 8.5 19.5 11Z" /></>}
-    {name === "box" && <><path d="m4 8 8-4 8 4v9l-8 4-8-4Z" /><path d="m4 8 8 4 8-4M12 12v9" /><path d="M10.5 7.2c.6-.7 1.7-.6 2.1.2.5-.8 1.6-.9 2.2-.2.7.9 0 2.1-2.2 3.3-2.1-1.2-2.8-2.4-2.1-3.3Z" /></>}
-    {name === "care" && <><path d="M20.8 5.7a5.4 5.4 0 0 0-7.7-.1L12 6.7l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 22l8.8-8.7a5.4 5.4 0 0 0 0-7.6Z" /><path d="M5.8 13h3l1.2-3 2.1 6 1.6-3h4.5" /></>}
-    {name === "spark" && <><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" /><circle cx="12" cy="12" r="3.2" /></>}
-    {name === "check" && <><path d="M6 3.5h9.2L19 7.3V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" /><path d="M15.2 3.5v3.8H19" /><path d="m8.3 13.2 2.3 2.3 5-5" /></>}
-    {name === "link" && <><path d="M10 14 14 10" /><path d="M8.3 15.7a3.2 3.2 0 0 1 0-4.5l2-2a3.2 3.2 0 0 1 4.5 0" /><path d="M15.7 8.3a3.2 3.2 0 0 1 0 4.5l-2 2a3.2 3.2 0 0 1-4.5 0" /></>}
-  </svg>;
+// Dato financiero del directorio verificado con botón de copiar (solo tiene
+// efecto visual en móvil, ver .directorio-account en app/mobile.css — en
+// escritorio se ve igual que el texto plano anterior). Nunca cambia el
+// valor: copia exactamente lo que ya viene de /api/directorio-ayuda.
+function DatoConCopiar({ dataKey, label, value, copiedKey, onCopiar }: { dataKey: string; label: string; value: string; copiedKey: string | null; onCopiar: (key: string, value: string) => void }) {
+  const copiado = copiedKey === dataKey;
+  return (
+    <span className="directorio-account">
+      <span><span className="directorio-account-label">{label}</span><span className="directorio-account-value">{value}</span></span>
+      <button type="button" className={`directorio-copy${copiado ? " done" : ""}`} onClick={() => onCopiar(dataKey, value)}>
+        <SolidarityIcon name="copy" />{copiado ? "Copiado" : "Copiar"}
+      </button>
+    </span>
+  );
 }
 
 const fallbackHelpItems: HelpItem[] = [
@@ -128,13 +125,6 @@ const fallbackVerifications: Verification[] = [
   { afirmacion: "Cadena sobre entrega de subsidios sin registro previo.", estado: "en_revision", explicacion: "No comparta datos personales hasta confirmar la fuente oficial." },
 ];
 
-const fallbackContactosNacionales: ContactoLinea[] = [
-  { nombre: "Emergencias generales", numero: "123" }, { nombre: "Policía", numero: "112" }, { nombre: "Bomberos", numero: "119" }, { nombre: "Cruz Roja", numero: "132" }, { nombre: "Defensa Civil", numero: "144" },
-];
-const fallbackContactosBuenaventura: ContactoLinea[] = [
-  { nombre: "Cruz Roja Buenaventura", numero: "6022424475" }, { nombre: "Bomberos Buenaventura", numero: "2422222" }, { nombre: "Defensa Civil Buenaventura", numero: "2423719" }, { nombre: "Policía Buenaventura", numero: "165" }, { nombre: "Acueducto (Hidropacífico)", numero: "116" }, { nombre: "Energía", numero: "115" },
-];
-
 const fallbackComoSolicitar: { lo_que_se_sabe: PasoAyudaOficial[]; pendiente_de_confirmar: string[]; nota_transparencia: string } = {
   lo_que_se_sabe: [
     { paso: "Punto de atención presencial", detalle: "Oficina de Atención al Ciudadano, frente a la Alcaldía Distrital de Buenaventura. Lunes a viernes, 8:00 AM – 5:00 PM." },
@@ -173,6 +163,15 @@ export default function Home() {
   const [plataformas, setPlataformas] = useState<Plataformas | null>(null);
   const [cuentasYVoces, setCuentasYVoces] = useState<CuentasYVoces | null>(null);
   const [directorioAyuda, setDirectorioAyuda] = useState<DirectorioAyuda | null>(null);
+
+  // Navegación móvil tipo app (≤760px vía app/mobile.css). En escritorio
+  // `vista` no cambia nada visualmente: el CSS que la usa solo existe dentro
+  // de ese media query.
+  const [vista, setVista] = useState<VistaId>("hoy");
+  const [sosAbierto, setSosAbierto] = useState(false);
+  const [pendingAnchor, setPendingAnchor] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const { conteo: novedadesAyuda, marcarVistas } = useNovedades();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -232,9 +231,64 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = selected || menuOpen ? "hidden" : "";
+    document.body.style.overflow = selected || menuOpen || sosAbierto ? "hidden" : "";
     return () => { document.body.style.overflow = "" };
-  }, [selected, menuOpen]);
+  }, [selected, menuOpen, sosAbierto]);
+
+  // Anclas dentro del portal (footer, hero, índice de recursos…) pueden
+  // apuntar a una sección que hoy vive en otra pestaña móvil. Se cambia de
+  // pestaña primero y, una vez el DOM la muestra, se hace scroll manual — si
+  // se dejara el salto nativo del navegador, intentaría desplazarse a una
+  // sección todavía oculta con display:none y no haría nada.
+  const onNavClick = (event: React.MouseEvent<HTMLElement>) => {
+    const target = event.target as HTMLElement;
+    const anchor = target.closest("a[href^='#']") as HTMLAnchorElement | null;
+    if (!anchor) return;
+    const href = anchor.getAttribute("href") || "";
+    const destino = vistaDeAncla(href);
+    if (!destino || destino === vista) return; // misma pestaña: que el navegador haga el scroll suave normal
+    event.preventDefault();
+    setVista(destino);
+    setPendingAnchor(href.slice(1));
+  };
+
+  useEffect(() => {
+    if (!pendingAnchor) return;
+    // El efecto ya corre después de que React aplicó el nuevo data-tab al
+    // DOM, así que la sección destino ya no está display:none — se puede
+    // hacer scroll de inmediato. setTimeout(0) solo difiere el setState de
+    // limpieza (evita "no llamar setState directo dentro de un efecto");
+    // usar requestAnimationFrame aquí sería más "correcto" en apariencia,
+    // pero los navegadores no lo disparan en pestañas en segundo plano, y
+    // este scroll sí debe ocurrir aunque la pestaña pierda el foco.
+    document.getElementById(pendingAnchor)?.scrollIntoView({ block: "start" });
+    const id = window.setTimeout(() => setPendingAnchor(null), 0);
+    return () => window.clearTimeout(id);
+  }, [vista, pendingAnchor]);
+
+  const cambiarVista = (nueva: VistaId) => {
+    setVista(nueva);
+    window.scrollTo({ top: 0 });
+  };
+
+  const copiarValor = async (key: string, value: string) => {
+    await navigator.clipboard?.writeText(value).catch(() => undefined);
+    setCopiedKey(key);
+    window.setTimeout(() => setCopiedKey((current) => (current === key ? null : current)), 1800);
+  };
+
+  const recargarAyuda = async () => {
+    const controller = new AbortController();
+    try {
+      const publicaciones = await fetchJson<Publication[]>("/api/publicaciones", controller.signal);
+      const dynamicItems = publicaciones.map(publicationToHelpItem).filter((item): item is HelpItem => item !== null);
+      if (dynamicItems.length > 0) setHelpItems(dynamicItems);
+      marcarVistas();
+    } catch {
+      // Si la recarga falla (backend caído), se deja el contador como está
+      // en vez de fingir que ya no hay novedades.
+    }
+  };
 
   const filteredItems = useMemo(() => helpItems.filter((item) => filter === "todos" || item.type === filter), [filter, helpItems]);
   const displayedVerifications = verifications.length > 0 ? verifications.slice(0, 3) : fallbackVerifications;
@@ -256,7 +310,7 @@ export default function Home() {
   };
 
   return (
-    <main>
+    <main data-tab={vista} onClick={onNavClick}>
       <a className="skip-link" href="#contenido">Saltar al contenido</a>
       <div className="emergency-bar"><div className="shell emergency-inner"><span><i className="pulse-dot" /> Emergencia sísmica · M{magnitude}</span><span className="emergency-date">Buenaventura · información en actualización</span><a href="#cifras">Ver último balance <span aria-hidden="true">↘</span></a></div></div>
 
@@ -266,7 +320,7 @@ export default function Home() {
         <div className="nav-actions"><button className="share-button" onClick={shareSite}>{copied ? "Enlace copiado" : "Compartir"} <span>↗</span></button><button className="menu-button" onClick={() => setMenuOpen(true)} aria-label="Abrir menú"><span /><span /></button></div>
       </div></header>
 
-      <section className="hero" id="inicio">
+      <section className="hero" id="inicio" data-vista="hoy">
         <div className="hero-wash" /><div className="hero-word hero-word-one">BUENA</div><div className="hero-word hero-word-two">VENTURA</div>
         <div className="shell hero-grid">
           <div className="hero-copy"><p className="kicker light"><span>10·08·26</span> La ciudad que no se queda en el suelo</p><h1>Nos golpeó la tierra.<br /><em>Nos sostiene la gente.</em></h1><p className="hero-intro">Este es el relato vivo de una ciudad que se organiza, comparte y vuelve a levantarse desde sus barrios, sus ríos y su mar.</p><div className="hero-actions"><a className="primary-cta" href="#ayuda">Encontrar ayuda <span>→</span></a><a className="text-link light-link" href="#hoy">Ver lo que está pasando <span>↓</span></a></div></div>
@@ -279,16 +333,16 @@ export default function Home() {
         <div className="hero-bottom shell"><p>Información ciudadana para actuar con dignidad, rapidez y cuidado.</p><span>Desliza para conocer el pulso de la ciudad</span></div>
       </section>
 
-      <section className="road-strip" aria-label="Estado de la vía"><div className="shell road-inner"><div className="road-label"><span className="traffic-light"><i /><i /><i /></span><strong>Estado de la vía</strong></div><div className="road-main"><span>PASO RESTRINGIDO</span><p>Corredor Buga–Buenaventura con movilidad controlada y puntos bajo monitoreo.</p></div><div className="road-time"><small>Actualizado</small><strong>14 AGO · 8:30 a. m.</strong></div><button className="circle-arrow" aria-label="Ver detalle del estado de la vía">↗</button></div></section>
+      <section className="road-strip" aria-label="Estado de la vía" data-vista="hoy"><div className="shell road-inner"><div className="road-label"><span className="traffic-light"><i /><i /><i /></span><strong>Estado de la vía</strong></div><div className="road-main"><span>PASO RESTRINGIDO</span><p>Corredor Buga–Buenaventura con movilidad controlada y puntos bajo monitoreo.</p></div><div className="road-time"><small>Actualizado</small><strong>14 AGO · 8:30 a. m.</strong></div><button className="circle-arrow" aria-label="Ver detalle del estado de la vía">↗</button></div></section>
 
-      <section className="manifesto" id="contenido"><div className="shell manifesto-grid"><p className="section-index">01 — EL PULSO</p><div><h2>La emergencia también tiene otro rostro: <em>manos que buscan, cocinan, curan y sostienen.</em></h2><p>La información puede salvar tiempo, recursos y vidas. Aquí reunimos lo oficial y lo comunitario para que cada ayuda encuentre a quien la necesita.</p><div className="solidarity-values" aria-label="Principios de la red"><span><i><SolidarityIcon name="hands" /></i><b>Sostener</b><small>La ayuda llega con dignidad</small></span><span><i><SolidarityIcon name="union" /></i><b>Unir</b><small>La comunidad conecta capacidades</small></span><span><i><SolidarityIcon name="care" /></i><b>Cuidar</b><small>Cada decisión protege una vida</small></span></div></div></div></section>
+      <section className="manifesto" id="contenido" data-vista="hoy"><div className="shell manifesto-grid"><p className="section-index">01 — EL PULSO</p><div><h2>La emergencia también tiene otro rostro: <em>manos que buscan, cocinan, curan y sostienen.</em></h2><p>La información puede salvar tiempo, recursos y vidas. Aquí reunimos lo oficial y lo comunitario para que cada ayuda encuentre a quien la necesita.</p><div className="solidarity-values" aria-label="Principios de la red"><span><i><SolidarityIcon name="hands" /></i><b>Sostener</b><small>La ayuda llega con dignidad</small></span><span><i><SolidarityIcon name="union" /></i><b>Unir</b><small>La comunidad conecta capacidades</small></span><span><i><SolidarityIcon name="care" /></i><b>Cuidar</b><small>Cada decisión protege una vida</small></span></div></div></div></section>
 
-      <section className="figures-section" id="cifras">
+      <section className="figures-section" id="cifras" data-vista="hoy">
         <div className="shell figures-heading"><div><p className="kicker"><span>Información oficial</span> Corte: {figureCutoff}</p><h2>Lo que sabemos<br />hasta ahora</h2></div><div className="official-note"><span className="verified-badge">✓ Fuente oficial</span><p>Datos reportados por el Distrito Especial de Buenaventura. Las cifras pueden cambiar con cada nuevo boletín.</p><a href="#boletines">Consultar boletín completo →</a></div></div>
         <div className="shell figure-flow">{figures.map((figure, index) => <div className={`figure-item figure-${index + 1}`} key={figure.label}><strong>{figure.value}</strong><span>{figure.label}</span></div>)}<div className="figure-note">Cada cifra representa una historia, una familia y una comunidad.</div></div>
       </section>
 
-      <section className="alert-section" id="alertas" aria-label="Réplicas y toque de queda">
+      <section className="alert-section" id="alertas" aria-label="Réplicas y toque de queda" data-vista="hoy">
         <div className="shell alert-heading"><p className="section-index">— RÉPLICAS Y TOQUE DE QUEDA</p><h2>Lo que hay que <em>tener presente</em> hoy.</h2></div>
         <div className="shell alert-grid">
           <div className="alert-card curfew-card"><span className={`truth-stamp ${toqueDeQueda?.estado === "vigente" ? "expired" : "true"}`}>{toqueDeQueda ? (toqueDeQueda.estado === "vigente" ? "VIGENTE" : toqueDeQueda.estado.toUpperCase()) : "POR CONFIRMAR"}</span><h3>Toque de queda</h3>{toqueDeQueda?.horario ? <p className="alert-highlight">{toqueDeQueda.horario}</p> : <p className="alert-empty">Aún no hay un decreto oficial confirmado por el equipo.</p>}{toqueDeQueda?.excepciones && toqueDeQueda.excepciones.length > 0 && <ul className="alert-list">{toqueDeQueda.excepciones.map((excepcion) => <li key={excepcion}>{excepcion}</li>)}</ul>}{toqueDeQueda?.nota && <p className="alert-note">{toqueDeQueda.nota}</p>}<p className="alert-source">{toqueDeQueda?.fuente ? `Fuente: ${toqueDeQueda.fuente}` : "Fuente por confirmar"}{toqueDeQueda?.ultimo_decreto_fecha ? ` · ${formatDate(toqueDeQueda.ultimo_decreto_fecha)}` : ""}</p></div>
@@ -296,7 +350,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="socorro-section" id="socorro">
+      <section className="socorro-section" id="socorro" data-vista="ayuda">
         <div className="shell section-title-row"><div><p className="section-index">02 — EQUIPOS DE SOCORRO Y RESPUESTA</p><h2>A quién llamar<br />ahora mismo.</h2></div><p className="socorro-note">Toca cualquier línea para llamar directo desde el celular.</p></div>
         <div className="shell contact-groups">
           <div className="contact-group"><h3>Líneas nacionales</h3><ul>{(contactos?.nacionales ?? fallbackContactosNacionales).map((contacto) => <li key={contacto.nombre}><a href={`tel:${contacto.numero}`}>{contacto.nombre}<span>{contacto.numero} ↗</span></a></li>)}</ul></div>
@@ -310,7 +364,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="today-section" id="hoy">
+      <section className="today-section" id="hoy" data-vista="hoy">
         <div className="shell section-title-row"><div><p className="section-index">03 — BUENAVENTURA HOY</p><h2>Actualidad,<br />verificada y con fecha</h2></div><a className="text-link" href="#ayuda">Ver red de ayuda <span>↗</span></a></div>
         {noticias.length > 0 ? <div className="shell editorial-grid">
           <article className="lead-story"><div className="story-image">{noticias[0].archivo ? (noticias[0].tipo_archivo === "video" ? <video src={noticias[0].archivo} muted playsInline preload="metadata" /> : <img src={noticias[0].archivo} alt={noticias[0].titulo} />) : <MarcaPlataforma url={noticias[0].url_externa} className="story-image-empty" />}<span className="story-tag">{noticias[0].nivel_confianza}</span></div><div className="story-copy"><p className="story-meta">{formatDate(noticias[0].fecha_publicado)}</p><h3>{noticias[0].titulo}</h3><p>{noticias[0].descripcion || "Consulta la publicación original para más contexto."}</p>{noticias[0].url_externa && <a href={noticias[0].url_externa} target="_blank" rel="noreferrer"><button>Ver publicación <span>→</span></button></a>}</div></article>
@@ -319,9 +373,9 @@ export default function Home() {
         </div> : <div className="shell empty-news"><p>Todavía no hay actualidad verificada y con fecha publicada por el equipo en esta sección. Cuando el equipo confirme una historia, aparecerá aquí con su fuente.</p></div>}
       </section>
 
-      <section className="action-marquee" aria-label="Acciones de ayuda"><div><span>PUEDO AYUDAR</span><i><SolidarityIcon name="heart" /></i><span>NECESITO AYUDA</span><i><SolidarityIcon name="hands" /></i><span>COMPARTIR SALVA</span><i><SolidarityIcon name="union" /></i><span>PUEDO AYUDAR</span></div></section>
+      <section className="action-marquee" aria-label="Acciones de ayuda" data-vista="ayuda"><div><span>PUEDO AYUDAR</span><i><SolidarityIcon name="heart" /></i><span>NECESITO AYUDA</span><i><SolidarityIcon name="hands" /></i><span>COMPARTIR SALVA</span><i><SolidarityIcon name="union" /></i><span>PUEDO AYUDAR</span></div></section>
 
-      <section className="ayuda-oficial-section" id="ayuda-oficial">
+      <section className="ayuda-oficial-section" id="ayuda-oficial" data-vista="ayuda">
         <div className="shell section-title-row"><div><p className="section-index">04 — CÓMO SOLICITAR AYUDA OFICIAL</p><h2>Si necesitas ayuda,<br />este es el canal oficial.</h2></div><a className="text-link" href="#ayuda">Ver también la red de ayuda <span>↗</span></a></div>
         <div className="shell oficial-grid">
           <div className="oficial-steps"><h3>Lo que ya está confirmado</h3><ol>{(comoSolicitar?.lo_que_se_sabe ?? fallbackComoSolicitar.lo_que_se_sabe).map((paso, index) => <li key={paso.paso}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{paso.paso}</strong><p>{paso.detalle}</p></div></li>)}</ol></div>
@@ -329,13 +383,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="help-section" id="ayuda">
+      <section className="help-section" id="ayuda" data-vista="ayuda">
         <div className="shell help-intro"><div><p className="section-index">05 — RED DE AYUDA</p><h2>Que la ayuda<br /><em>encuentre su camino.</em></h2></div><p>Clasificamos la información que circula en redes y estados para que puedas actuar desde un solo lugar.</p></div>
+        {novedadesAyuda > 0 && <div className="shell"><button className="novedades-bar" onClick={recargarAyuda}><SolidarityIcon name="alert" /> Ver {novedadesAyuda} {novedadesAyuda === 1 ? "publicación nueva" : "publicaciones nuevas"}</button></div>}
         <div className="shell filters" role="group" aria-label="Filtrar publicaciones de ayuda">{filters.map((item) => <button className={filter === item.id ? "active" : ""} key={item.id} onClick={() => setFilter(item.id)}><SolidarityIcon name={item.icon} />{item.label}</button>)}</div>
         <div className="shell help-grid">{filteredItems.map((item, index) => <article className={`help-card help-card-${index % 3}`} key={item.id}><button className="card-media" onClick={() => setSelected(item)} aria-label={`Abrir información: ${item.title}`}>{item.image ? (item.mediaType === "video" ? <video src={item.image} muted playsInline preload="metadata" /> : <img src={item.image} alt="" />) : <MarcaPlataforma url={item.href} className="card-media-empty" />}<span className="open-card">Ver información <i>↗</i></span></button><div className="card-copy"><div className="card-topline"><span>{item.eyebrow}</span><span className={item.verified ? "status verified" : "status reviewing"}>{item.verified ? "✓ Verificado" : "◌ En revisión"}</span></div><h3>{item.title}</h3><p>{item.place}</p></div></article>)}</div>
       </section>
 
-      <section className="directorio-section" id="directorio-ayuda">
+      <section className="directorio-section" id="directorio-ayuda" data-vista="ayuda">
         <div className="shell section-title-row"><div><p className="section-index">06 — DIRECTORIO VERIFICADO</p><h2>A quién sí<br /><em>puedes donarle.</em></h2></div><p className="directorio-note">Organizaciones y colectivos identificables, revisados por el equipo antes de publicarse.</p></div>
         <div className="shell fraud-warning"><strong>{directorioAyuda?.advertencia_fraude.titulo ?? "La Alcaldía de Buenaventura aclaró públicamente:"}</strong><ul>{(directorioAyuda?.advertencia_fraude.puntos ?? fallbackAdvertenciaFraude).map((punto) => <li key={punto}>{punto}</li>)}</ul></div>
         <div className="shell directorio-grid">
@@ -345,11 +400,11 @@ export default function Home() {
             {iniciativa.descripcion && <p>{iniciativa.descripcion}</p>}
             {(iniciativa.ubicacion || iniciativa.horario) && <p className="directorio-meta">⌖ {iniciativa.ubicacion}{iniciativa.horario ? ` · ${iniciativa.horario}` : ""}</p>}
             <div className="directorio-accounts">
-              {iniciativa.cuenta && <span>Cuenta: {iniciativa.cuenta}</span>}
-              {iniciativa.cuenta_bancolombia_ahorros && <span>Bancolombia ahorros: {iniciativa.cuenta_bancolombia_ahorros}</span>}
-              {iniciativa.llave_bre_b && <span>Llave Bre-B: {iniciativa.llave_bre_b}</span>}
-              {iniciativa.llave_daviplata && <span>Daviplata: {iniciativa.llave_daviplata}</span>}
-              {iniciativa.contacto_whatsapp && <span>WhatsApp: {iniciativa.contacto_whatsapp}</span>}
+              {iniciativa.cuenta && <DatoConCopiar dataKey={`${iniciativa.nombre}-cuenta`} label="Cuenta" value={iniciativa.cuenta} copiedKey={copiedKey} onCopiar={copiarValor} />}
+              {iniciativa.cuenta_bancolombia_ahorros && <DatoConCopiar dataKey={`${iniciativa.nombre}-bancolombia`} label="Bancolombia ahorros" value={iniciativa.cuenta_bancolombia_ahorros} copiedKey={copiedKey} onCopiar={copiarValor} />}
+              {iniciativa.llave_bre_b && <DatoConCopiar dataKey={`${iniciativa.nombre}-bre-b`} label="Llave Bre-B" value={iniciativa.llave_bre_b} copiedKey={copiedKey} onCopiar={copiarValor} />}
+              {iniciativa.llave_daviplata && <DatoConCopiar dataKey={`${iniciativa.nombre}-daviplata`} label="Daviplata" value={iniciativa.llave_daviplata} copiedKey={copiedKey} onCopiar={copiarValor} />}
+              {iniciativa.contacto_whatsapp && <a className="directorio-account directorio-account-wa" href={`https://wa.me/${iniciativa.contacto_whatsapp.replace(/[^\d]/g, "")}`} target="_blank" rel="noreferrer"><SolidarityIcon name="wa" /><span className="directorio-account-label">WhatsApp</span><span className="directorio-account-value">{iniciativa.contacto_whatsapp}</span></a>}
             </div>
             {iniciativa.recibe && iniciativa.recibe.length > 0 && <p className="directorio-recibe"><strong>Recibe:</strong> {iniciativa.recibe.join(", ")}</p>}
             {iniciativa.no_recibe && iniciativa.no_recibe.length > 0 && <p className="directorio-no-recibe"><strong>No recibe:</strong> {iniciativa.no_recibe.join(", ")}</p>}
@@ -360,9 +415,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="medical-section" id="atencion-medica"><div className="shell medical-layout"><div className="medical-art"><img src="/media/14-WhatsApp-Image-2026-08-13-at-2.23.56-PM.jpeg" alt="Servicio solidario de fisioterapia respiratoria" /><div className="medical-number">24<span>/</span>7</div></div><div className="medical-copy"><p className="section-index">CUIDAR TAMBIÉN ES LEVANTAR</p><h2>Salud para el cuerpo.<br /><em>Compañía para el alma.</em></h2><p>Encuentra atención médica, fisioterapia respiratoria, apoyo psicosocial y orientación gratuita ofrecida por profesionales de la ciudad.</p><div className="hotline"><span>Línea distrital de salud mental</span><a href={`tel:${healthPhone}`}>{readableHealthPhone} <i>↗</i></a></div><a className="primary-cta dark-cta" href="#ayuda">Ver servicios disponibles <span>→</span></a></div></div></section>
+      <section className="medical-section" id="atencion-medica" data-vista="ayuda"><div className="shell medical-layout"><div className="medical-art"><img src="/media/14-WhatsApp-Image-2026-08-13-at-2.23.56-PM.jpeg" alt="Servicio solidario de fisioterapia respiratoria" /><div className="medical-number">24<span>/</span>7</div></div><div className="medical-copy"><p className="section-index">CUIDAR TAMBIÉN ES LEVANTAR</p><h2>Salud para el cuerpo.<br /><em>Compañía para el alma.</em></h2><p>Encuentra atención médica, fisioterapia respiratoria, apoyo psicosocial y orientación gratuita ofrecida por profesionales de la ciudad.</p><div className="hotline"><span>Línea distrital de salud mental</span><a href={`tel:${healthPhone}`}>{readableHealthPhone} <i>↗</i></a></div><a className="primary-cta dark-cta" href="#ayuda">Ver servicios disponibles <span>→</span></a></div></div></section>
 
-      <section className="registro-visual-section" id="registro-visual">
+      <section className="registro-visual-section" id="registro-visual" data-vista="verificado">
         <div className="shell section-title-row"><div><p className="section-index">07 — REGISTRO VISUAL</p><h2>Foto y video,<br />solo si pasa el filtro.</h2></div></div>
         <div className="shell registro-grid">
           {registroVisual && registroVisual.items.length > 0 ? <div className="registro-items">{registroVisual.items.map((item) => <article key={item.titulo}><h3>{item.titulo}</h3>{item.descripcion && <p>{item.descripcion}</p>}<p className="alert-source">Verificado el {formatDate(item.fecha_verificacion)}</p></article>)}</div> : <div className="registro-empty"><i className="registro-empty-icon"><SolidarityIcon name="check" /></i><p>{registroVisual?.nota_transparencia ?? "Todavía no hay ningún video o foto que haya pasado el checklist de verificación del equipo. No se publica contenido visual sin verificar, aunque eso signifique que esta sección empiece vacía."}</p></div>}
@@ -370,13 +425,13 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="verification-section" id="verificacion"><div className="shell verification-grid"><div><p className="section-index light-index">08 — VERIFICADO / FALSO</p><h2>En una emergencia,<br /><em>la verdad también cuida.</em></h2></div><div className="verification-feed">
+      <section className="verification-section" id="verificacion" data-vista="verificado"><div className="shell verification-grid"><div><p className="section-index light-index">08 — VERIFICADO / FALSO</p><h2>En una emergencia,<br /><em>la verdad también cuida.</em></h2></div><div className="verification-feed">
         {displayedVerifications.map((verification) => { const presentation = verificationPresentation(verification.estado); return <article key={verification.afirmacion}><span className={`truth-stamp ${presentation.className}`}>{presentation.label}</span><div><h3>{verification.afirmacion}</h3><p>{verification.explicacion}{verification.fuente ? ` · ${verification.fuente}` : ""}</p></div><button aria-label={`Detalle: ${verification.afirmacion}`}>↗</button></article> })}
       </div></div></section>
 
-      <section className="bulletins-section" id="boletines"><div className="shell section-title-row bulletin-title"><div><p className="section-index">09 — FUENTES OFICIALES</p><h2>Boletines para entender y actuar</h2></div><span className="update-clock">Contenido sincronizado con el panel</span></div><div className="shell bulletin-list">{displayedBulletins.map((bulletin, index) => <article key={bulletin.id}><span className="bulletin-number">{String(index + 1).padStart(2, "0")}</span><span className="bulletin-level">{bulletin.nivel_gobierno === "alcaldia" ? "Distrito" : bulletin.nivel_gobierno === "departamento" ? "Departamento" : "Nación"}</span><div><h3>{bulletin.titulo}</h3><p>{bulletin.entidad}{bulletin.descripcion ? ` · ${bulletin.descripcion}` : ""}</p></div><time>{formatDate(bulletin.fecha_del_boletin || bulletin.fecha_publicado)}</time><a className="circle-arrow" href={bulletin.archivo} target={bulletin.archivo.startsWith("http") ? "_blank" : undefined} rel="noreferrer" aria-label={`Abrir boletín: ${bulletin.titulo}`}>↗</a></article>)}</div></section>
+      <section className="bulletins-section" id="boletines" data-vista="verificado"><div className="shell section-title-row bulletin-title"><div><p className="section-index">09 — FUENTES OFICIALES</p><h2>Boletines para entender y actuar</h2></div><span className="update-clock">Contenido sincronizado con el panel</span></div><div className="shell bulletin-list">{displayedBulletins.map((bulletin, index) => <article key={bulletin.id}><span className="bulletin-number">{String(index + 1).padStart(2, "0")}</span><span className="bulletin-level">{bulletin.nivel_gobierno === "alcaldia" ? "Distrito" : bulletin.nivel_gobierno === "departamento" ? "Departamento" : "Nación"}</span><div><h3>{bulletin.titulo}</h3><p>{bulletin.entidad}{bulletin.descripcion ? ` · ${bulletin.descripcion}` : ""}</p></div><time>{formatDate(bulletin.fecha_del_boletin || bulletin.fecha_publicado)}</time><a className="circle-arrow" href={bulletin.archivo} target={bulletin.archivo.startsWith("http") ? "_blank" : undefined} rel="noreferrer" aria-label={`Abrir boletín: ${bulletin.titulo}`}>↗</a></article>)}</div></section>
 
-      <section className="plataformas-section" id="plataformas">
+      <section className="plataformas-section" id="plataformas" data-vista="mas">
         <div className="shell section-title-row"><div><p className="section-index">10 — PLATAFORMAS ÚTILES</p><h2>Otras herramientas<br />que ya existen.</h2></div></div>
         <div className="shell plataformas-columns">
           <div className="plataformas-group"><h3>Ciudadanas</h3><div className="plataformas-list">{(plataformas?.ciudadanas ?? []).map((plataforma) => <a key={plataforma.nombre} href={plataforma.url} target="_blank" rel="noreferrer"><div><strong>{plataforma.nombre}</strong>{plataforma.descripcion && <small>{plataforma.descripcion}</small>}</div><i>↗</i></a>)}</div></div>
@@ -385,13 +440,13 @@ export default function Home() {
         {!plataformas && <p className="shell alert-empty">Cargando plataformas…</p>}
       </section>
 
-      <section className="cuentas-section" id="cuentas-voces">
+      <section className="cuentas-section" id="cuentas-voces" data-vista="mas">
         <div className="shell section-title-row"><div><p className="section-index">11 — CUENTAS Y VOCES</p><h2>A quién sí<br /><em>seguirle la pista.</em></h2></div><p className="directorio-note">Cuentas y personas con acción real verificada, no solo mensajes de solidaridad.</p></div>
         <div className="shell cuentas-criterios"><h3>Criterios de inclusión</h3><ul>{(cuentasYVoces?.criterios_inclusion ?? []).map((criterio) => <li key={criterio}>{criterio}</li>)}</ul></div>
         <div className="shell cuentas-columns">{cuentasGroups.map((group) => <div className="cuentas-group" key={group.label}><h3>{group.label}</h3>{group.items.length > 0 ? <ul>{group.items.map((cuenta) => <li key={cuenta.nombre}><strong>{cuenta.nombre}</strong>{cuenta.canal && <span>{cuenta.canal}</span>}{cuenta.descripcion && <p>{cuenta.descripcion}</p>}{cuenta.estado_verificacion && <small>{cuenta.estado_verificacion}</small>}</li>)}</ul> : <p className="alert-empty">Sin cuentas verificadas todavía en esta categoría.</p>}</div>)}</div>
       </section>
 
-      <section className="acerca-section" id="acerca-de">
+      <section className="acerca-section" id="acerca-de" data-vista="mas">
         <div className="shell acerca-grid">
           <div><p className="section-index">12 — ACERCA DE LA INICIATIVA</p><h2>Cómo verificamos,<br /><em>publicamos y corregimos.</em></h2></div>
           <div className="acerca-copy">
@@ -402,20 +457,26 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="resources-section" aria-label="Más información útil"><div className="shell resources-layout">
+      <section className="resources-section" aria-label="Más información útil" data-vista="mas"><div className="shell resources-layout">
         <div className="resources-heading"><p className="section-index">ÍNDICE</p><h2>Todo lo útil,<br /><em>en un solo lugar.</em></h2><p>Rutas claras para actuar sin perder tiempo y sin exponer información personal innecesaria.</p></div>
         <nav className="resource-links">{[
           ["Cómo solicitar ayuda oficial", "Pasos, canales y documentos necesarios", "#ayuda-oficial", "01"], ["Réplicas y toque de queda", "Última actividad sísmica y restricciones vigentes", "#alertas", "02"], ["Directorio verificado de ayuda", "A quién sí donarle, con cuentas y advertencia de fraude", "#directorio-ayuda", "03"], ["Plataformas útiles", "Mapas, registros y servicios públicos", "#plataformas", "04"], ["Equipos de socorro", "Quiénes están trabajando y cómo contactarlos", "#socorro", "05"], ["Cuentas y voces", "Periodistas, organizaciones y líderes del territorio", "#cuentas-voces", "06"], ["Acerca de la iniciativa", "Cómo verificamos, publicamos y corregimos", "#acerca-de", "07"],
         ].map((resource) => <a href={resource[2]} key={resource[0]}><span>{resource[3]}</span><div><strong>{resource[0]}</strong><small>{resource[1]}</small></div><i>↗</i></a>)}</nav>
       </div></section>
 
-      <section className="final-call"><div className="shell final-call-inner"><p className="final-symbol"><SolidarityIcon name="hands" /> Una ciudad no se levanta sola.</p><h2>Comparte lo útil.<br />Verifica lo urgente.<br /><em>Sostén a tu gente.</em></h2><div><a className="primary-cta" href="#ayuda"><SolidarityIcon name="heart" /> Quiero ayudar <span>→</span></a><button onClick={shareSite}>Compartir este portal ↗</button></div></div></section>
+      <section className="final-call" data-vista="mas"><div className="shell final-call-inner"><p className="final-symbol"><SolidarityIcon name="hands" /> Una ciudad no se levanta sola.</p><h2>Comparte lo útil.<br />Verifica lo urgente.<br /><em>Sostén a tu gente.</em></h2><div><a className="primary-cta" href="#ayuda"><SolidarityIcon name="heart" /> Quiero ayudar <span>→</span></a><button onClick={shareSite}>Compartir este portal ↗</button></div></div></section>
 
-      <footer><div className="shell footer-grid"><div className="footer-brand"><span className="brand-mark footer-mark"><b>B</b><i /></span><h2>Buenaventura<br /><strong>se levanta</strong></h2><p>Una iniciativa ciudadana hecha por y para la comunidad.</p></div><div><h3>Información</h3><a href="#cifras">Cifras oficiales</a><a href="#alertas">Réplicas y toque de queda</a><a href="#hoy">Actualidad</a><a href="#boletines">Boletines</a><a href="#verificacion">Verificado / Falso</a><a href="#registro-visual">Registro visual</a></div><div><h3>Ayuda</h3><a href="#ayuda-oficial">Solicitar ayuda oficial</a><a href="#ayuda">Necesito ayuda</a><a href="#ayuda">Puedo ayudar</a><a href="#directorio-ayuda">Directorio verificado</a><a href="#socorro">Equipos de socorro</a><a href="#atencion-medica">Atención médica</a></div><div><h3>Emergencias</h3><a href="tel:123">Línea 123</a><a href="tel:132">Cruz Roja 132</a><a href="tel:119">Bomberos 119</a><a href="#acerca-de">Acerca de la iniciativa</a><button onClick={shareSite}>Compartir el portal ↗</button></div></div><div className="shell footer-bottom"><span>© 2026 Buenaventura se levanta</span><span>Fondos editoriales ilustrativos · Registro visual con fuente</span><a href="#inicio">Volver arriba ↑</a></div></footer>
+      <footer data-vista="mas"><div className="shell footer-grid"><div className="footer-brand"><span className="brand-mark footer-mark"><b>B</b><i /></span><h2>Buenaventura<br /><strong>se levanta</strong></h2><p>Una iniciativa ciudadana hecha por y para la comunidad.</p></div><div><h3>Información</h3><a href="#cifras">Cifras oficiales</a><a href="#alertas">Réplicas y toque de queda</a><a href="#hoy">Actualidad</a><a href="#boletines">Boletines</a><a href="#verificacion">Verificado / Falso</a><a href="#registro-visual">Registro visual</a></div><div><h3>Ayuda</h3><a href="#ayuda-oficial">Solicitar ayuda oficial</a><a href="#ayuda">Necesito ayuda</a><a href="#ayuda">Puedo ayudar</a><a href="#directorio-ayuda">Directorio verificado</a><a href="#socorro">Equipos de socorro</a><a href="#atencion-medica">Atención médica</a></div><div><h3>Emergencias</h3><a href="tel:123">Línea 123</a><a href="tel:132">Cruz Roja 132</a><a href="tel:119">Bomberos 119</a><a href="#acerca-de">Acerca de la iniciativa</a><button onClick={shareSite}>Compartir el portal ↗</button></div></div><div className="shell footer-bottom"><span>© 2026 Buenaventura se levanta</span><span>Fondos editoriales ilustrativos · Registro visual con fuente</span><a href="#inicio">Volver arriba ↑</a></div></footer>
 
       {selected && <div className="modal-backdrop" role="presentation" onMouseDown={() => setSelected(null)}><article className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setSelected(null)} aria-label="Cerrar">×</button><div className="modal-image">{selected.image ? (selected.mediaType === "video" ? <video src={selected.image} controls playsInline /> : <img src={selected.image} alt={`Pieza informativa: ${selected.title}`} />) : <MarcaPlataforma url={selected.href} className="modal-image-empty" />}</div><div className="modal-copy"><div className="card-topline"><span>{selected.eyebrow}</span><span className={selected.verified ? "status verified" : "status reviewing"}>{selected.verified ? "✓ Verificado" : "◌ En revisión"}</span></div><h2 id="modal-title">{selected.title}</h2><p className="modal-place">⌖ {selected.place}</p><p>{selected.detail}</p><div className="safety-note"><strong>Antes de donar</strong><span>Confirma la vigencia y la identidad del responsable. Las solicitudes monetarias requieren verificación adicional.</span></div><div className="modal-actions">{selected.href && <a href={selected.href} target="_blank" rel="noreferrer">Abrir publicación original ↗</a>}<button onClick={shareSite}>Compartir información ↗</button><button onClick={() => setSelected(null)}>Seguir explorando</button></div></div></article></div>}
 
       {menuOpen && <div className="menu-overlay"><div className="shell menu-top"><a className="brand inverse" href="#inicio"><span className="brand-mark"><b>B</b><i /></span><span>Buenaventura<br /><strong>se levanta</strong></span></a><button onClick={() => setMenuOpen(false)} aria-label="Cerrar menú">×</button></div><nav className="shell mobile-nav" aria-label="Menú móvil">{[["Hoy", "#hoy"], ["Información oficial", "#cifras"], ["Equipos de socorro", "#socorro"], ["Red de ayuda", "#ayuda"], ["Verificación", "#verificacion"], ["Boletines", "#boletines"]].map(([label, href], index) => <a href={href} onClick={() => setMenuOpen(false)} key={href}><span>0{index + 1}</span>{label}<i>↗</i></a>)}</nav><p className="shell menu-footer">Información ciudadana para actuar con dignidad, rapidez y cuidado.</p></div>}
+
+      {/* Navegación móvil tipo app — solo se ve ≤760px (app/mobile.css). En
+          escritorio esto se monta pero no se muestra: ningún CSS fuera de
+          ese media query lo hace visible. */}
+      <MobileTabBar activa={vista} onCambiar={cambiarVista} onAbrirSOS={() => setSosAbierto(true)} novedadesAyuda={novedadesAyuda} />
+      <EmergencySheet open={sosAbierto} onClose={() => setSosAbierto(false)} contactos={contactos} />
     </main>
   );
 }

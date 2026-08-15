@@ -139,4 +139,50 @@ dejes algo pendiente que el otro debería tomar en cuenta antes de seguir.
 - Se reemplazo la hoja visual por un sistema coherente de emergencia ciudadana: tokens, hero, cifras, contactos, ayudas, publicaciones, verificacion y enlaces.
 - Se creo un sistema interno de iconos en `public/js/app.js` con `TRAZOS_ICONOS`, `icono()` e `ICONOS`; todos los iconos renderizados por JS comparten viewBox, trazo, clases `.icon` y nombres semanticos.
 - Contactos de emergencia ahora usan iconos contextuales por servicio: fuego, escudo, cruz, gota, energia, corazon, WhatsApp, telefono y entidad.
+
+## Actualización Claude — 15 de agosto de 2026 (navegación móvil tipo app en frontend/)
+
+**Aviso de zona**: esta sesión tocó `frontend/`, que por convención es zona del agente
+de diseño visual. Fue a pedido explícito del usuario (navegación móvil tipo app para
+una app de emergencia — barra de iconos, botón SOS, mejor acceso a canales de
+emergencia). El diseño de escritorio no cambió — verificado en navegador a 1440px,
+pixel-idéntico al anterior.
+
+**Qué se agregó**, todo en archivos nuevos para minimizar choque con trabajo en curso:
+- `frontend/app/components/vistas.ts` — mapa único de qué `<section>` pertenece a cada
+  pestaña móvil (`hoy` / `ayuda` / `verificado` / `mas`). Si agregas o quitas
+  secciones de `page.tsx`, actualiza este archivo y el atributo `data-vista="..."` de
+  la sección — si no, la sección nueva no aparecerá en ninguna pestaña en móvil (solo
+  se ve en escritorio).
+- `frontend/app/components/SolidarityIcon.tsx` — el `SolidarityIcon` que antes vivía
+  dentro de `page.tsx` se movió aquí tal cual, con 6 nombres nuevos (`home`, `phone`,
+  `menu`, `alert`, `copy`, `wa`). Sigue siendo el único sistema de iconos del portal —
+  no crear uno nuevo.
+- `frontend/app/components/MobileTabBar.tsx` y `EmergencySheet.tsx` — barra inferior de
+  5 iconos y la hoja de llamadas rápidas (números reales de
+  `/api/contactos-emergencia`, con los mismos fallbacks que ya usaba `#socorro`, ahora
+  centralizados aquí como `fallbackContactosNacionales`/`fallbackContactosBuenaventura`
+  exportados).
+- `frontend/app/lib/api.ts` — `apiUrl`/`fetchJson` que antes vivían en `page.tsx`, sin
+  cambios de comportamiento, solo movidos para poder reutilizarlos desde
+  `useNovedades.ts`.
+- `frontend/app/components/useNovedades.ts` — sondeo a un endpoint nuevo,
+  `GET /api/novedades?desde=<ISO>` (`routes/api.js` + `services/publicacionesService.js`
+  → `contarDesde`), cada 60s y solo con la pestaña visible, para el badge "N nuevas"
+  sobre el ícono Ayuda. Sondeo, no SSE — decisión explícita por la facturación de
+  Render sin resolver (backend intermitente, ver `docs/ENTORNOS.md`).
+- `frontend/app/mobile.css` — todo el CSS nuevo envuelto en `@media(max-width:760px)`,
+  importado después de `globals.css` en `layout.tsx`. Regla seguida a rajatabla: solo
+  reglas que esconden, nunca que fuerzan `display` sobre algo que no lo tenía —
+  cualquier componente que se monte siempre (como `MobileTabBar`) necesita su propio
+  `display:none` incondicional fuera del media query, o aparece como bloque sin estilo
+  en escritorio (así se encontró y arregló un bug real durante la verificación).
+- `page.tsx`: cada `<section>` ganó `data-vista="..."`; el directorio de ayuda ganó
+  botón de copiar en los datos financieros y el WhatsApp del CICR pasó de texto inerte
+  a enlace `wa.me` real — ambos sin efecto visual en escritorio (verificado).
+
+**Pendiente, si alguien quiere continuar esto**: notificaciones push reales (Web Push +
+service worker + PWA instalable) quedaron fuera de este alcance a propósito — en
+iPhone exigen instalar el portal en la pantalla de inicio, y conviene esperar a que el
+backend de Render deje de caerse antes de depender de él para push.
 - La seccion de equipos de socorro se redisenó para verse como modulo operativo de emergencia, no como grilla decorativa.

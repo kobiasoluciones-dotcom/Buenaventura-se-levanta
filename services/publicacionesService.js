@@ -4,6 +4,10 @@ const { fechaHoyColombia } = require('./fechaUtil');
 const BUCKET = 'sismo-archivos';
 const SECCIONES_VALIDAS = ['ofrecimientos', 'puntos-acopio', 'necesidades', 'salud', 'registro-visual', 'noticias'];
 const NIVELES_CONFIANZA_VALIDOS = ['oficial', 'institucional', 'colectivo', 'individual'];
+// Secciones que alimentan la pestaña "Ayuda" del frontend móvil (ver page.tsx
+// sectionPresentation). No incluye "registro-visual" ni "noticias": esas viven
+// en otras pestañas y no generan el badge de novedades de ayuda.
+const SECCIONES_AYUDA = ['ofrecimientos', 'puntos-acopio', 'necesidades', 'salud'];
 
 async function listar(seccion) {
   let consulta = supabase.from('sismo_publicaciones').select('*').order('creado_en', { ascending: false });
@@ -11,6 +15,36 @@ async function listar(seccion) {
   const { data, error } = await consulta;
   if (error) throw error;
   return data.map(formatearSalida);
+}
+
+// Para el badge "novedades" de la pestaña Ayuda en móvil: cuántas
+// publicaciones de ayuda entraron después de `desde` (ISO), y cuál es la
+// fecha de la más reciente (para que el siguiente sondeo use esa fecha como
+// base). No hace falta filtrar por revisión del equipo aquí — a diferencia de
+// cifras-oficiales o contactos-emergencia, sismo_publicaciones no tiene
+// columna ultima_revision_por_equipo: cada fila ya pasó por el panel /admin
+// al crearse (ver `crear` más abajo), que es su propio paso de verificación.
+async function contarDesde(desde) {
+  const { data: ultimaFila, error: errorUltima } = await supabase
+    .from('sismo_publicaciones')
+    .select('creado_en')
+    .in('seccion', SECCIONES_AYUDA)
+    .order('creado_en', { ascending: false })
+    .limit(1);
+  if (errorUltima) throw errorUltima;
+  const ultima_fecha = ultimaFila && ultimaFila[0] ? ultimaFila[0].creado_en : null;
+
+  let conteo = 0;
+  if (desde) {
+    const { count, error } = await supabase
+      .from('sismo_publicaciones')
+      .select('id', { count: 'exact', head: true })
+      .in('seccion', SECCIONES_AYUDA)
+      .gt('creado_en', desde);
+    if (error) throw error;
+    conteo = count ?? 0;
+  }
+  return { conteo, ultima_fecha };
 }
 
 function formatearSalida(fila) {
@@ -94,4 +128,4 @@ async function eliminar(id) {
   if (error) throw error;
 }
 
-module.exports = { listar, crear, eliminar, subirArchivoAStorage };
+module.exports = { listar, crear, eliminar, subirArchivoAStorage, contarDesde };

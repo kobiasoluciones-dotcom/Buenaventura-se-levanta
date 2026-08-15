@@ -16,6 +16,7 @@ function manejar(promesaFn) {
 }
 
 router.get('/publicaciones', manejar((req) => publicacionesService.listar(req.query.seccion)));
+router.get('/novedades', manejar((req) => publicacionesService.contarDesde(req.query.desde)));
 router.get('/boletines', manejar((req) => boletinesService.listar(req.query.nivel_gobierno)));
 router.get('/cifras-oficiales', manejar(() => contenidoService.obtenerCifrasOficiales()));
 router.get('/contactos-emergencia', manejar(() => contenidoService.obtenerContactosEmergencia()));
